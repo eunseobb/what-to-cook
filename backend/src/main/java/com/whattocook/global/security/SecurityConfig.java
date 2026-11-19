@@ -30,7 +30,8 @@ public class SecurityConfig {
             "/actuator/health/**",
             "/actuator/info",
             "/actuator/prometheus",   // prod에서는 내부 관리 포트(8081)로만 노출된다.
-            "/error"
+            "/error",
+            "/api/ingredients/autocomplete"
     };
 
     private final CorsProperties corsProperties;
