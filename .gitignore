@@ -1,0 +1,70 @@
+CLAUDE.md
+/.claude
+
+# ===== Claude Code (개인 설정) =====
+.claude/settings.local.json
+CLAUDE.local.md
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== IDE =====
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.vscode/
+!.vscode/extensions.json
+*.swp
+
+# ===== Java / Gradle / Maven =====
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+target/
+*.class
+*.log
+logs/
+hs_err_pid*
+
+# ===== Spring 비밀값·환경설정 =====
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.properties
+application-prod.yml
+application-prod.properties
+*.pem
+*.key
+*.p12
+*.jks
+
+# ===== Frontend (Node / Vite) =====
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+
+# ===== 모바일 (Capacitor / React Native) =====
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/build/
+*.keystore
+
+# ===== Docker / 로컬 데이터 =====
+docker/data/
+*.dump
+
+# ===== 부하 테스트 원본 결과 (리포트는 docs/performance/에 커밋) =====
+k6-results/
+*.jtl
