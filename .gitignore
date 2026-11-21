@@ -15,14 +15,13 @@ Thumbs.db
 *.ipr
 *.iws
 out/
-.vscode/
+.vscode/*
 !.vscode/extensions.json
 *.swp
 
 # ===== Java / Gradle / Maven =====
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
 target/
 *.class
 *.log
@@ -48,17 +47,10 @@ dist/
 dist-ssr/
 *.local
 .vite/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 coverage/
 
 # ===== 모바일 (Capacitor / React Native) =====
-android/.gradle/
-android/app/build/
 ios/Pods/
-ios/build/
 *.keystore
 
 # ===== Docker / 로컬 데이터 =====
