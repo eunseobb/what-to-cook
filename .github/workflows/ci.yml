@@ -60,9 +60,7 @@ jobs:
 
       - name: Build and test
         # Testcontainers는 GitHub 호스티드 러너의 Docker를 그대로 사용한다.
-        run: |
-          chmod +x gradlew
-          ./gradlew build --no-daemon
+        run: ./gradlew build --no-daemon
 
       - name: Upload test reports
         if: failure()
