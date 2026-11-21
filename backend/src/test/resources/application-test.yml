@@ -1,0 +1,9 @@
+# test 프로파일: DB/Redis는 Testcontainers(@ServiceConnection)가 주입한다.
+spring:
+  ai:
+    openai:
+      api-key: test-placeholder-key   # OpenAI 호출은 테스트에서 Mock으로 대체한다.
+
+logging:
+  level:
+    com.whattocook: debug

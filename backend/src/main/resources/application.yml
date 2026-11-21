@@ -1,0 +1,162 @@
+# ============================================================
+# 공통 설정 (모든 프로파일)
+# 비밀값은 환경변수로만 주입한다. 이 파일에 실제 비밀값을 적지 않는다.
+# ============================================================
+spring:
+  application:
+    name: what-to-cook
+  profiles:
+    default: local
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # 스키마는 Flyway 마이그레이션으로만 관리한다.
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        jdbc:
+          time_zone: UTC
+
+  jackson:
+    time-zone: Asia/Seoul
+    default-property-inclusion: non_null
+
+server:
+  shutdown: graceful
+  servlet:
+    encoding:
+      force: true
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method
+    tags-sorter: alpha
+  default-produces-media-type: application/json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# LLM 호출 격리 설정 (F2 기타 추천)
+resilience4j:
+  circuitbreaker:
+    instances:
+      openai:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        slow-call-duration-threshold: 10s
+        slow-call-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      openai:
+        max-attempts: 2
+        wait-duration: 500ms
+  timelimiter:
+    instances:
+      openai:
+        timeout-duration: 30s
+
+app:
+  cors:
+    allowed-origins: http://localhost:5173
+
+---
+# ============================================================
+# local: docker-compose(PostgreSQL, Redis)로 띄운 로컬 개발 환경
+# ============================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:whattocook}
+    username: ${DB_USERNAME:whattocook}
+    password: ${DB_PASSWORD:whattocook}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+  ai:
+    openai:
+      # 실제 호출이 필요할 때만 OPENAI_API_KEY를 설정한다. 기본값으로는 호출이 실패한다.
+      api-key: ${OPENAI_API_KEY:local-placeholder-key}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.whattocook: debug
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
+
+---
+# ============================================================
+# prod: 모든 접속 정보와 비밀값을 환경변수로 받는다 (기본값 없음 → 누락 시 기동 실패)
+# ============================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  server:
+    port: 8081   # 메트릭·헬스체크는 내부 포트로만 노출한다.
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+logging:
+  structured:
+    format:
+      console: ecs
