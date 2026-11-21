@@ -1,7 +1,6 @@
 package com.whattocook.global.error;
 
 import java.util.List;
-import org.springframework.validation.BindingResult;
 
 /**
  * 모든 에러 응답의 공통 포맷.
@@ -24,20 +23,10 @@ public record ErrorResponse(String code, String message, List<FieldError> errors
         return new ErrorResponse(errorCode.getCode(), errorCode.getMessage(), errors);
     }
 
-    public static ErrorResponse of(ErrorCode errorCode, BindingResult bindingResult) {
-        return of(errorCode, FieldError.from(bindingResult));
-    }
-
     public record FieldError(String field, String value, String reason) {
 
         public static FieldError of(String field, Object value, String reason) {
             return new FieldError(field, value == null ? "" : String.valueOf(value), reason);
-        }
-
-        static List<FieldError> from(BindingResult bindingResult) {
-            return bindingResult.getFieldErrors().stream()
-                    .map(e -> of(e.getField(), e.getRejectedValue(), e.getDefaultMessage()))
-                    .toList();
         }
     }
 }
