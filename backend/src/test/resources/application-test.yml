@@ -4,6 +4,10 @@ spring:
     openai:
       api-key: test-placeholder-key   # OpenAI 호출은 테스트에서 Mock으로 대체한다.
 
+app:
+  jwt:
+    secret: test-only-jwt-secret-0123456789-abcdefghij
+
 logging:
   level:
     com.whattocook: debug

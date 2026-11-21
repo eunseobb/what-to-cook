@@ -27,8 +27,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
-        return toResponse(ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE, e.getBindingResult()),
-                ErrorCode.INVALID_INPUT_VALUE);
+        List<ErrorResponse.FieldError> errors = e.getBindingResult().getFieldErrors().stream()
+                .map(f -> ErrorResponse.FieldError.of(f.getField(), f.getRejectedValue(), f.getDefaultMessage()))
+                .toList();
+        return toResponse(ErrorCode.INVALID_INPUT_VALUE, errors);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -37,45 +39,45 @@ public class GlobalExceptionHandler {
                 .map(v -> ErrorResponse.FieldError.of(
                         v.getPropertyPath().toString(), v.getInvalidValue(), v.getMessage()))
                 .toList();
-        return toResponse(ErrorResponse.of(ErrorCode.INVALID_INPUT_VALUE, errors), ErrorCode.INVALID_INPUT_VALUE);
+        return toResponse(ErrorCode.INVALID_INPUT_VALUE, errors);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         List<ErrorResponse.FieldError> errors = List.of(
                 ErrorResponse.FieldError.of(e.getName(), e.getValue(), "타입이 올바르지 않습니다."));
-        return toResponse(ErrorResponse.of(ErrorCode.INVALID_TYPE_VALUE, errors), ErrorCode.INVALID_TYPE_VALUE);
+        return toResponse(ErrorCode.INVALID_TYPE_VALUE, errors);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingParameter(MissingServletRequestParameterException e) {
         List<ErrorResponse.FieldError> errors = List.of(
                 ErrorResponse.FieldError.of(e.getParameterName(), null, "필수 파라미터입니다."));
-        return toResponse(ErrorResponse.of(ErrorCode.MISSING_PARAMETER, errors), ErrorCode.MISSING_PARAMETER);
+        return toResponse(ErrorCode.MISSING_PARAMETER, errors);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException e) {
-        return toResponse(ErrorResponse.of(ErrorCode.MALFORMED_REQUEST_BODY), ErrorCode.MALFORMED_REQUEST_BODY);
+        return toResponse(ErrorCode.MALFORMED_REQUEST_BODY, List.of());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
-        return toResponse(ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED), ErrorCode.METHOD_NOT_ALLOWED);
+        return toResponse(ErrorCode.METHOD_NOT_ALLOWED, List.of());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException e) {
-        return toResponse(ErrorResponse.of(ErrorCode.RESOURCE_NOT_FOUND), ErrorCode.RESOURCE_NOT_FOUND);
+        return toResponse(ErrorCode.RESOURCE_NOT_FOUND, List.of());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         log.error("Unhandled exception", e);
-        return toResponse(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR), ErrorCode.INTERNAL_SERVER_ERROR);
+        return toResponse(ErrorCode.INTERNAL_SERVER_ERROR, List.of());
     }
 
-    private ResponseEntity<ErrorResponse> toResponse(ErrorResponse body, ErrorCode errorCode) {
-        return ResponseEntity.status(errorCode.getStatus()).body(body);
+    private ResponseEntity<ErrorResponse> toResponse(ErrorCode errorCode, List<ErrorResponse.FieldError> errors) {
+        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode, errors));
     }
 }

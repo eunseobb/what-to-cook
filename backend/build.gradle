@@ -13,12 +13,6 @@ java {
     }
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
-
 repositories {
     mavenCentral()
 }
@@ -89,22 +83,6 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-// QueryDSL Q타입 생성 위치
-def querydslDir = layout.buildDirectory.dir('generated/querydsl')
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.compilerArgs += ['-parameters']
-}
-
-tasks.named('compileJava', JavaCompile) {
-    options.generatedSourceOutputDirectory = querydslDir
-}
-
-tasks.named('clean') {
-    delete querydslDir
 }
 
 tasks.named('test') {
