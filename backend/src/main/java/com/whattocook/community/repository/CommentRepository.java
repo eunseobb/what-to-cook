@@ -1,10 +1,13 @@
 package com.whattocook.community.repository;
 
 import com.whattocook.community.domain.Comment;
+import jakarta.persistence.LockModeType;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,4 +31,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             where c.parent.id in :parentIds and c.deleted = false
             order by c.id asc""")
     List<Comment> findRepliesByParentIds(@Param("parentIds") Collection<Long> parentIds);
+
+    /** 행 잠금(SELECT ... FOR UPDATE)으로 조회한다. 같은 댓글 신고를 직렬화해 누적 수를 정확히 센다. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Comment c where c.id = :id")
+    Optional<Comment> findByIdForUpdate(@Param("id") Long id);
 }
