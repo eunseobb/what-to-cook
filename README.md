@@ -34,7 +34,7 @@ cd backend && ./gradlew bootRun
 
 ## 프론트엔드 로컬 실행
 
-**필요한 것**: Node.js 24 이상 (npm 11 — CI와 같은 버전이어야 lock 파일이 맞음)
+**필요한 것**: Node.js 20 이상
 
 ```bash
 cd frontend
