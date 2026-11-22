@@ -49,6 +49,10 @@ public class Comment extends BaseTimeEntity {
     @Column(nullable = false)
     private boolean deleted;
 
+    /** 신고 누적으로 숨김. */
+    @Column(nullable = false)
+    private boolean hidden;
+
     public Comment(Recipe recipe, User user, Comment parent, String content) {
         this.recipe = recipe;
         this.user = user;
@@ -71,5 +75,9 @@ public class Comment extends BaseTimeEntity {
     /** 소프트 삭제. 대댓글을 보존하고 신고 처리 때 원문을 볼 수 있게 내용은 지우지 않는다. */
     public void delete() {
         this.deleted = true;
+    }
+
+    public void hide() {
+        this.hidden = true;
     }
 }

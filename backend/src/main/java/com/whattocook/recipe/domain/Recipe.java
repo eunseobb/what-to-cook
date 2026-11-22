@@ -162,4 +162,9 @@ public class Recipe extends BaseTimeEntity {
     public void delete() {
         this.status = RecipeStatus.DELETED;
     }
+
+    /** 신고 누적으로 숨김. 게시 중인 레시피만 조회되므로 목록·상세·댓글에서 빠진다. */
+    public void hide() {
+        this.status = RecipeStatus.HIDDEN;
+    }
 }
