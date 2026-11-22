@@ -74,10 +74,10 @@ public class CommentService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.RECIPE_NOT_FOUND));
     }
 
-    /** 대댓글을 달 수 있는 부모: 같은 레시피의 삭제되지 않은 최상위 댓글. */
+    /** 대댓글을 달 수 있는 부모: 같은 레시피의 삭제·숨김되지 않은 최상위 댓글. */
     private Comment findReplyTarget(Long recipeId, Long parentId) {
         Comment parent = commentRepository.findById(parentId)
-                .filter(c -> !c.isDeleted() && Objects.equals(c.getRecipe().getId(), recipeId))
+                .filter(c -> !c.isDeleted() && !c.isHidden() && Objects.equals(c.getRecipe().getId(), recipeId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
         if (parent.isReply()) {
             throw new BusinessException(ErrorCode.REPLY_DEPTH_EXCEEDED);
@@ -87,7 +87,7 @@ public class CommentService {
 
     private Comment findOwned(Long userId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
-                .filter(c -> !c.isDeleted() && c.getRecipe().getStatus() == RecipeStatus.PUBLISHED)
+                .filter(c -> !c.isDeleted() && !c.isHidden() && c.getRecipe().getStatus() == RecipeStatus.PUBLISHED)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
         if (!comment.isWrittenBy(userId)) {
             throw new BusinessException(ErrorCode.NOT_COMMENT_AUTHOR);
