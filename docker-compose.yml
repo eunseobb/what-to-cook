@@ -1,4 +1,4 @@
-# 로컬 개발용 인프라 (PostgreSQL, Redis)
+# 로컬 개발용 인프라 (PostgreSQL, Redis, S3 호환 스토리지)
 # 사용법: cp .env.example .env && docker compose up -d
 services:
   postgres:
@@ -33,6 +33,30 @@ services:
       timeout: 3s
       retries: 10
 
+  # S3 호환 스토리지 (레시피 이미지). SeaweedFS S3 게이트웨이를 쓴다.
+  # 키 계정은 업로드(Presigned URL 서명)용이고, 익명 사용자는 읽기(GET)만 할 수 있다.
+  s3:
+    image: chrislusf/seaweedfs:3.80
+    container_name: whattocook-s3
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        cat > /etc/s3.json <<EOF
+        {"identities":[
+          {"name":"app","credentials":[{"accessKey":"$${STORAGE_ACCESS_KEY}","secretKey":"$${STORAGE_SECRET_KEY}"}],
+           "actions":["Admin","Read","List","Write","Tagging"]},
+          {"name":"anonymous","actions":["Read"]}]}
+        EOF
+        exec weed server -dir=/data -s3 -s3.port=9000 -s3.config=/etc/s3.json
+    environment:
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-whattocook}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-whattocook-local}
+    ports:
+      - "9000:9000"
+    volumes:
+      - s3-data:/data
+
 volumes:
   postgres-data:
   redis-data:
+  s3-data:

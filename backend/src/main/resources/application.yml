@@ -115,7 +115,7 @@ app:
     # 로컬 전용 기본값. 운영에서는 반드시 JWT_SECRET 환경변수로 32바이트 이상 임의 값을 넣는다.
     secret: ${JWT_SECRET:local-only-jwt-secret-change-me-0123456789}
   storage:
-    # docker-compose의 MinIO. 키 기본값은 로컬 전용이며 docker-compose와 같은 값을 쓴다.
+    # docker-compose의 S3 호환 스토리지(SeaweedFS). 키 기본값은 로컬 전용이며 docker-compose와 같은 값을 쓴다.
     endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
     region: us-east-1
     bucket: ${STORAGE_BUCKET:whattocook-images}
