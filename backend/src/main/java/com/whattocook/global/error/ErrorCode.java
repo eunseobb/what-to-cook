@@ -35,7 +35,12 @@ public enum ErrorCode {
     NOT_RECIPE_AUTHOR(HttpStatus.FORBIDDEN, "R002", "레시피 작성자만 수정·삭제할 수 있습니다."),
     RECIPE_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "R003", "존재하지 않는 재료가 포함되어 있습니다."),
     DUPLICATE_RECIPE_INGREDIENT(HttpStatus.BAD_REQUEST, "R004", "같은 재료를 두 번 넣을 수 없습니다."),
-    RECIPE_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "R005", "존재하지 않는 태그가 포함되어 있습니다.");
+    RECIPE_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "R005", "존재하지 않는 태그가 포함되어 있습니다."),
+
+    // Upload
+    UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "UP001", "JPEG, PNG, WebP 이미지만 업로드할 수 있습니다."),
+    IMAGE_EXTENSION_MISMATCH(HttpStatus.BAD_REQUEST, "UP002", "파일 확장자가 이미지 형식과 맞지 않습니다."),
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "UP003", "이미지 파일이 너무 큽니다.");
 
     private final HttpStatus status;
     private final String code;
