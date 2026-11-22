@@ -47,7 +47,8 @@ services:
            "actions":["Admin","Read","List","Write","Tagging"]},
           {"name":"anonymous","actions":["Read"]}]}
         EOF
-        exec weed server -dir=/data -s3 -s3.port=9000 -s3.config=/etc/s3.json
+        # 개발용이라 볼륨을 작게(1GB) 여러 개 잡는다. 기본값(30GB)이면 디스크 여유가 적을 때 쓰기가 실패한다.
+        exec weed server -dir=/data -master.volumeSizeLimitMB=1024 -volume.max=100 -s3 -s3.port=9000 -s3.config=/etc/s3.json
     environment:
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-whattocook}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-whattocook-local}
