@@ -23,11 +23,13 @@ ext {
     set('querydslVersion', '7.1')
     set('jjwtVersion', '0.12.7')
     set('resilience4jVersion', '2.3.0')
+    set('awsSdkVersion', '2.35.11')
 }
 
 dependencyManagement {
     imports {
         mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+        mavenBom "software.amazon.awssdk:bom:${awsSdkVersion}"
     }
 }
 
@@ -49,6 +51,9 @@ dependencies {
 
     // Cache / Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Storage (S3 호환 스토리지, Presigned URL 발급)
+    implementation 'software.amazon.awssdk:s3'
 
     // Security / JWT
     implementation 'org.springframework.boot:spring-boot-starter-security'
