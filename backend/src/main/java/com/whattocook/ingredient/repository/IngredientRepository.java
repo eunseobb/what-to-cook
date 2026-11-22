@@ -13,4 +13,7 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     @Query("select distinct i from Ingredient i join fetch i.aliases where i.id in "
             + "(select i2.id from Ingredient i2 join i2.aliases a where a in :aliases)")
     List<Ingredient> findAllByAliasIn(@Param("aliases") Collection<String> aliases);
+
+    @Query("select distinct i from Ingredient i left join fetch i.aliases")
+    List<Ingredient> findAllWithAliases();
 }
