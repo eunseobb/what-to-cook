@@ -28,7 +28,14 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A004", "유효하지 않은 Refresh 토큰입니다. 다시 로그인해 주세요."),
 
     // User
-    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "U001", "이미 가입된 이메일입니다.");
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "U001", "이미 가입된 이메일입니다."),
+
+    // Recipe
+    RECIPE_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "레시피를 찾을 수 없습니다."),
+    NOT_RECIPE_AUTHOR(HttpStatus.FORBIDDEN, "R002", "레시피 작성자만 수정·삭제할 수 있습니다."),
+    RECIPE_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "R003", "존재하지 않는 재료가 포함되어 있습니다."),
+    DUPLICATE_RECIPE_INGREDIENT(HttpStatus.BAD_REQUEST, "R004", "같은 재료를 두 번 넣을 수 없습니다."),
+    RECIPE_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "R005", "존재하지 않는 태그가 포함되어 있습니다.");
 
     private final HttpStatus status;
     private final String code;
