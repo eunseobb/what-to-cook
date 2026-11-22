@@ -94,6 +94,28 @@ class CommentRepositoryTest {
         assertThat(replies).allMatch(r -> Hibernate.isInitialized(r.getUser()));
     }
 
+    @Test
+    @DisplayName("숨긴 댓글은 살아 있는 대댓글이 있을 때만 목록에 남고, 숨긴 대댓글은 빠진다")
+    void hidden() {
+        Comment hiddenWithReply = save(recipe, null, "1");
+        Comment reply = save(recipe, hiddenWithReply, "1-1");
+        Comment hiddenAlone = save(recipe, null, "2");
+        Comment withHiddenReply = save(recipe, null, "3");
+        Comment hiddenOnlyReply = save(recipe, null, "4");
+        save(recipe, withHiddenReply, "3-1").hide();
+        save(recipe, hiddenOnlyReply, "4-1").hide();
+        hiddenWithReply.hide();
+        hiddenAlone.hide();
+        hiddenOnlyReply.hide();
+        em.flush();
+        em.clear();
+
+        assertThat(commentRepository.findRootPage(recipe.getId(), 0L, Limit.of(10)))
+                .extracting(Comment::getId).containsExactly(hiddenWithReply.getId(), withHiddenReply.getId());
+        assertThat(commentRepository.findRepliesByParentIds(List.of(hiddenWithReply.getId(), withHiddenReply.getId())))
+                .extracting(Comment::getId).containsExactly(reply.getId());
+    }
+
     private Comment save(Recipe target, Comment parent, String content) {
         return commentRepository.save(new Comment(target, user, parent, content));
     }
