@@ -76,6 +76,8 @@ app:
   jwt:
     access-token-validity: 30m
     refresh-token-validity: 14d
+  report:
+    hide-threshold: 5   # 누적 신고 수가 이 값에 이르면 레시피·댓글을 숨긴다.
 
 ---
 # ============================================================
