@@ -28,7 +28,37 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A004", "유효하지 않은 Refresh 토큰입니다. 다시 로그인해 주세요."),
 
     // User
-    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "U001", "이미 가입된 이메일입니다.");
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "U001", "이미 가입된 이메일입니다."),
+
+    // Recipe
+    RECIPE_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "레시피를 찾을 수 없습니다."),
+    NOT_RECIPE_AUTHOR(HttpStatus.FORBIDDEN, "R002", "레시피 작성자만 수정·삭제할 수 있습니다."),
+    RECIPE_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "R003", "존재하지 않는 재료가 포함되어 있습니다."),
+    DUPLICATE_RECIPE_INGREDIENT(HttpStatus.BAD_REQUEST, "R004", "같은 재료를 두 번 넣을 수 없습니다."),
+    RECIPE_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "R005", "존재하지 않는 태그가 포함되어 있습니다."),
+
+    // Upload
+    UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "UP001", "JPEG, PNG, WebP 이미지만 업로드할 수 있습니다."),
+    IMAGE_EXTENSION_MISMATCH(HttpStatus.BAD_REQUEST, "UP002", "파일 확장자가 이미지 형식과 맞지 않습니다."),
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "UP003", "이미지 파일이 너무 큽니다."),
+
+    // Onboarding
+    ONBOARDING_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "O001", "존재하지 않는 태그가 포함되어 있습니다."),
+    ONBOARDING_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "O002", "존재하지 않는 재료가 포함되어 있습니다."),
+    DUPLICATE_EXCLUDED_INGREDIENT(HttpStatus.BAD_REQUEST, "O003", "같은 재료를 알레르기·비선호에 중복해서 넣을 수 없습니다."),
+
+    // Like
+    ALREADY_LIKED(HttpStatus.CONFLICT, "L001", "이미 좋아요한 레시피입니다."),
+    LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "L002", "좋아요하지 않은 레시피입니다."),
+
+    // Comment (C 접두어는 Common이 쓰고 있어 CM을 쓴다)
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CM001", "댓글을 찾을 수 없습니다."),
+    NOT_COMMENT_AUTHOR(HttpStatus.FORBIDDEN, "CM002", "댓글 작성자만 수정·삭제할 수 있습니다."),
+    REPLY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "CM003", "대댓글에는 답글을 달 수 없습니다."),
+
+    // Report (R 접두어는 Recipe가 쓰고 있어 RP를 쓴다)
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "RP001", "이미 신고한 대상입니다."),
+    CANNOT_REPORT_OWN(HttpStatus.BAD_REQUEST, "RP002", "자신이 쓴 글은 신고할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
