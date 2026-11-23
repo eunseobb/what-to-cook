@@ -80,6 +80,11 @@ app:
     # 클라이언트가 직접 올리는 Presigned PUT URL. 짧게 둬서 유출돼도 재사용 시간을 줄인다.
     presign-expiry: 5m
     max-file-size: 5MB
+  report:
+    hide-threshold: 5   # 누적 신고 수가 이 값에 이르면 레시피·댓글을 숨긴다.
+  like:
+    strategy: redis        # redis(Redis 원자 연산, 기본) | lock(비관적 락). 부하 테스트 비교용 전환 스위치
+    flush-interval: PT10S  # redis 방식에서 모은 카운트를 DB(recipe.like_count)에 반영하는 주기
 
 ---
 # ============================================================

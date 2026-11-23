@@ -158,8 +158,22 @@ public class Recipe extends BaseTimeEntity {
         }
     }
 
+    /** 비관적 락 방식 좋아요에서 행 락을 잡은 뒤 호출한다. */
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
+    }
+
     /** 소프트 삭제. 좋아요·댓글 등 이후 연관 데이터를 보존하기 위해 행을 지우지 않는다. */
     public void delete() {
         this.status = RecipeStatus.DELETED;
+    }
+
+    /** 신고 누적으로 숨김. 게시 중인 레시피만 조회되므로 목록·상세·댓글에서 빠진다. */
+    public void hide() {
+        this.status = RecipeStatus.HIDDEN;
     }
 }
