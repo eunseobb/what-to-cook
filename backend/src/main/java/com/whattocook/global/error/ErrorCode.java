@@ -40,8 +40,8 @@ public enum ErrorCode {
     // Upload
     UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "UP001", "JPEG, PNG, WebP 이미지만 업로드할 수 있습니다."),
     IMAGE_EXTENSION_MISMATCH(HttpStatus.BAD_REQUEST, "UP002", "파일 확장자가 이미지 형식과 맞지 않습니다."),
-    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "UP003", "이미지 파일이 너무 큽니다.")
-      
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "UP003", "이미지 파일이 너무 큽니다."),
+
     // Onboarding
     ONBOARDING_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "O001", "존재하지 않는 태그가 포함되어 있습니다."),
     ONBOARDING_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "O002", "존재하지 않는 재료가 포함되어 있습니다."),
