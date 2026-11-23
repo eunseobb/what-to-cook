@@ -62,7 +62,15 @@ public class RecipeController {
         return new RecipeCreateResponse(recipeService.create(userId, request));
     }
 
-    @Operation(summary = "레시피 수정", description = "작성자만 가능. 보낸 필드만 바꾸고, 재료·단계·태그 목록은 보내면 통째로 교체한다.")
+    @Operation(summary = "AI 레시피를 내 레시피로 가져오기",
+            description = "AI 생성 레시피를 내 커뮤니티 레시피로 복사한다. 편집은 응답 id로 레시피 수정 API를 쓴다.")
+    @PostMapping("/{recipeId}/fork")
+    @ResponseStatus(HttpStatus.CREATED)
+    public RecipeCreateResponse fork(@AuthenticationPrincipal Long userId, @PathVariable Long recipeId) {
+        return new RecipeCreateResponse(recipeService.forkAiRecipe(userId, recipeId));
+    }
+
+    @Operation(summary = "레시피 수정",description = "작성자만 가능. 보낸 필드만 바꾸고, 재료·단계·태그 목록은 보내면 통째로 교체한다.")
     @PatchMapping("/{recipeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@AuthenticationPrincipal Long userId, @PathVariable Long recipeId,

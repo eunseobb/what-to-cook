@@ -134,6 +134,37 @@ class RecipeServiceTest {
     }
 
     @Test
+    @DisplayName("AI 레시피를 내 커뮤니티 레시피로 복사하고, 커뮤니티 레시피는 가져올 수 없다")
+    void forkAiRecipe() {
+        Recipe ai = withId(Recipe.builder().source(RecipeSource.AI_GENERATED).ingredientSetHash("hash")
+                .title("AI 파달걀").difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(2)
+                .ingredients(List.of(new RecipeIngredient(egg, new BigDecimal("2"), "개")))
+                .steps(List.of(new RecipeStep("볶는다", null))).tags(List.of(korean)).build(), 7L);
+        given(recipeRepository.findByIdAndStatus(7L, RecipeStatus.PUBLISHED)).willReturn(Optional.of(ai));
+        given(userRepository.getReferenceById(1L)).willReturn(author);
+        given(recipeRepository.save(any(Recipe.class))).willAnswer(inv -> withId(inv.getArgument(0), 8L));
+
+        assertThat(recipeService.forkAiRecipe(1L, 7L)).isEqualTo(8L);
+
+        ArgumentCaptor<Recipe> captor = ArgumentCaptor.forClass(Recipe.class);
+        verify(recipeRepository).save(captor.capture());
+        Recipe copy = captor.getValue();
+        assertThat(copy.getSource()).isEqualTo(RecipeSource.COMMUNITY);
+        assertThat(copy.getIngredientSetHash()).isNull();
+        assertThat(copy.isWrittenBy(1L)).isTrue();
+        assertThat(copy.getTitle()).isEqualTo("AI 파달걀");
+        assertThat(copy.getServings()).isEqualTo(2);
+        assertThat(copy.getIngredients()).extracting(i -> i.getIngredient().getName()).containsExactly("달걀");
+        assertThat(copy.getSteps()).extracting(RecipeStep::getContent).containsExactly("볶는다");
+        assertThat(copy.getTags()).containsExactly(korean);
+
+        given(recipeRepository.findByIdAndStatus(5L, RecipeStatus.PUBLISHED)).willReturn(Optional.of(recipe(5L)));
+        assertThatThrownBy(() -> recipeService.forkAiRecipe(1L, 5L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.NOT_AI_RECIPE);
+    }
+
+    @Test
     @DisplayName("게시 상태가 아니거나 없는 레시피는 RECIPE_NOT_FOUND")
     void getNotFound() {
         given(recipeRepository.findByIdAndStatus(5L, RecipeStatus.PUBLISHED)).willReturn(Optional.empty());

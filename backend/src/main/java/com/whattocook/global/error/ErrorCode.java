@@ -36,6 +36,7 @@ public enum ErrorCode {
     RECIPE_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "R003", "존재하지 않는 재료가 포함되어 있습니다."),
     DUPLICATE_RECIPE_INGREDIENT(HttpStatus.BAD_REQUEST, "R004", "같은 재료를 두 번 넣을 수 없습니다."),
     RECIPE_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "R005", "존재하지 않는 태그가 포함되어 있습니다."),
+    NOT_AI_RECIPE(HttpStatus.BAD_REQUEST, "R006", "AI 생성 레시피만 내 레시피로 가져올 수 있습니다."),
 
     // Upload
     UNSUPPORTED_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "UP001", "JPEG, PNG, WebP 이미지만 업로드할 수 있습니다."),
