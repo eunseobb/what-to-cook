@@ -7,6 +7,14 @@ spring:
 app:
   jwt:
     secret: test-only-jwt-secret-0123456789-abcdefghij
+  storage:
+    # Presigned URL 발급은 네트워크 없이 서명만 하므로 실제 스토리지가 없어도 된다.
+    endpoint: http://localhost:9000
+    region: us-east-1
+    bucket: test-bucket
+    access-key: test-access-key
+    secret-key: test-secret-key
+    public-base-url: http://localhost:9000/test-bucket
   report:
     hide-threshold: 3   # 통합 테스트에서 적은 인원으로 숨김을 확인한다.
 

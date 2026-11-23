@@ -76,6 +76,10 @@ app:
   jwt:
     access-token-validity: 30m
     refresh-token-validity: 14d
+  storage:
+    # 클라이언트가 직접 올리는 Presigned PUT URL. 짧게 둬서 유출돼도 재사용 시간을 줄인다.
+    presign-expiry: 5m
+    max-file-size: 5MB
   report:
     hide-threshold: 5   # 누적 신고 수가 이 값에 이르면 레시피·댓글을 숨긴다.
   like:
@@ -115,6 +119,14 @@ app:
   jwt:
     # 로컬 전용 기본값. 운영에서는 반드시 JWT_SECRET 환경변수로 32바이트 이상 임의 값을 넣는다.
     secret: ${JWT_SECRET:local-only-jwt-secret-change-me-0123456789}
+  storage:
+    # docker-compose의 S3 호환 스토리지(SeaweedFS). 키 기본값은 로컬 전용이며 docker-compose와 같은 값을 쓴다.
+    endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
+    region: us-east-1
+    bucket: ${STORAGE_BUCKET:whattocook-images}
+    access-key: ${STORAGE_ACCESS_KEY:whattocook}
+    secret-key: ${STORAGE_SECRET_KEY:whattocook-local}
+    public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:9000/whattocook-images}
 
 management:
   endpoint:
@@ -170,6 +182,13 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
   jwt:
     secret: ${JWT_SECRET}
+  storage:
+    endpoint: ${STORAGE_ENDPOINT:}   # AWS S3면 비워 둔다.
+    region: ${STORAGE_REGION}
+    bucket: ${STORAGE_BUCKET}
+    access-key: ${STORAGE_ACCESS_KEY:}   # 비우면 IAM 역할 등 AWS 기본 자격 증명을 쓴다.
+    secret-key: ${STORAGE_SECRET_KEY:}
+    public-base-url: ${STORAGE_PUBLIC_BASE_URL}
 
 logging:
   structured:
