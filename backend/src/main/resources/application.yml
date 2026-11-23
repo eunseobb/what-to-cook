@@ -85,6 +85,12 @@ app:
   like:
     strategy: redis        # redis(Redis 원자 연산, 기본) | lock(비관적 락). 부하 테스트 비교용 전환 스위치
     flush-interval: PT10S  # redis 방식에서 모은 카운트를 DB(recipe.like_count)에 반영하는 주기
+  recommendation:
+    # 정렬 점수 = 일치율 × match-weight + 취향 점수 × taste-weight + 인기도 × popularity-weight (각 점수 0~1)
+    match-weight: 0.6
+    taste-weight: 0.25
+    popularity-weight: 0.15
+    candidate-limit: 200   # 일치율 상위 후보만 DB에서 가져와 점수를 매긴다(후보군 사전 축소).
 
 ---
 # ============================================================
