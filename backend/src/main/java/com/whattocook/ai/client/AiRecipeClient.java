@@ -2,6 +2,9 @@ package com.whattocook.ai.client;
 
 import com.whattocook.global.error.BusinessException;
 import com.whattocook.global.error.ErrorCode;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
@@ -21,7 +24,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * OpenAI로 레시피 초안을 만든다. 응답은 JSON Schema(strict)로 고정한다.
- * LLM 호출은 {@link #generate(List)} 한 곳뿐이다: Resilience4j 인스턴스 "openai"(application.yml)로 타임아웃·재시도를 건다.
+ * LLM 호출은 {@link #generate(List)} 한 곳뿐이다: Resilience4j 인스턴스 "openai"(application.yml)로 타임아웃·재시도·서킷 브레이커를 건다.
  */
 @Component
 public class AiRecipeClient {
@@ -40,6 +43,7 @@ public class AiRecipeClient {
     private final BeanOutputConverter<AiRecipeDraft.Drafts> converter =
             new BeanOutputConverter<>(AiRecipeDraft.Drafts.class);
     private final Retry retry;
+    private final CircuitBreaker circuitBreaker;
     private final TimeLimiter timeLimiter;
     /**
      * 타임아웃을 걸려면 호출을 다른 스레드에서 돌려야 한다. 호출하는 쪽(aiRecipeExecutor) 수만큼만 동시에 쓰인다.
@@ -48,23 +52,27 @@ public class AiRecipeClient {
     private final ExecutorService callExecutor = Executors.newCachedThreadPool(new CustomizableThreadFactory("openai-call-"));
 
     public AiRecipeClient(ChatClient.Builder chatClientBuilder, RetryRegistry retryRegistry,
-                          TimeLimiterRegistry timeLimiterRegistry) {
+                          TimeLimiterRegistry timeLimiterRegistry, CircuitBreakerRegistry circuitBreakerRegistry) {
         this.chatClient = chatClientBuilder.build();
         this.retry = retryRegistry.retry(RESILIENCE_INSTANCE);
         this.timeLimiter = timeLimiterRegistry.timeLimiter(RESILIENCE_INSTANCE);
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker(RESILIENCE_INSTANCE);
     }
 
     /**
-     * 재시도(일시 오류만, 지수 백오프) → 시도마다 타임아웃 순으로 감싸 호출한다.
+     * 재시도(일시 오류만, 지수 백오프) → 서킷 브레이커 → 시도마다 타임아웃 순으로 감싸 호출한다.
+     * 시도마다 서킷 브레이커가 실패를 세고, 열리면 재시도 없이 바로 실패한다.
      *
      * @param ingredientNames 사용자가 가진 표준 재료 이름
-     * @throws BusinessException 타임아웃이면 AI004
+     * @throws BusinessException 서킷이 열려 있으면 AI003, 타임아웃이면 AI004
      */
     public List<AiRecipeDraft> generate(List<String> ingredientNames) {
         Callable<List<AiRecipeDraft>> timed = TimeLimiter.decorateFutureSupplier(timeLimiter,
                 () -> callExecutor.submit(() -> call(ingredientNames)));
         try {
-            return Retry.decorateCallable(retry, timed).call();
+            return Retry.decorateCallable(retry, CircuitBreaker.decorateCallable(circuitBreaker, timed)).call();
+        } catch (CallNotPermittedException e) {
+            throw new BusinessException(ErrorCode.AI_UNAVAILABLE);
         } catch (TimeoutException e) {
             throw new BusinessException(ErrorCode.AI_TIMEOUT);
         } catch (RuntimeException e) {

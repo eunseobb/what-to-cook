@@ -11,6 +11,8 @@ import static org.mockito.Mockito.verify;
 import com.whattocook.global.error.BusinessException;
 import com.whattocook.global.error.ErrorCode;
 import com.whattocook.recipe.domain.Difficulty;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
@@ -32,7 +34,7 @@ import org.springframework.ai.openai.api.ResponseFormat;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.ai.retry.TransientAiException;
 
-/** 실제 OpenAI 대신 ChatModel을 Mock으로 두고 요청 형식·응답 변환과 장애 대응(타임아웃·재시도)을 확인한다. */
+/** 실제 OpenAI 대신 ChatModel을 Mock으로 두고 요청 형식·응답 변환과 장애 대응(타임아웃·재시도·서킷 브레이커)을 확인한다. */
 class AiRecipeClientTest {
 
     private static final String JSON = """
@@ -41,11 +43,17 @@ class AiRecipeClientTest {
             """;
 
     private final ChatModel chatModel = mock(ChatModel.class);
-    /** application.yml의 openai 인스턴스와 같은 규칙에 대기 시간만 줄였다. */
-    private final AiRecipeClient client = new AiRecipeClient(ChatClient.builder(chatModel),
-            RetryRegistry.of(RetryConfig.custom().maxAttempts(3).waitDuration(Duration.ofMillis(1))
-                    .retryExceptions(TransientAiException.class).build()),
-            TimeLimiterRegistry.of(TimeLimiterConfig.custom().timeoutDuration(Duration.ofMillis(200)).build()));
+    private final AiRecipeClient client = client(chatModel);
+
+    /** application.yml의 openai 인스턴스와 같은 규칙에 대기 시간·창 크기만 줄였다. */
+    private static AiRecipeClient client(ChatModel chatModel) {
+        return new AiRecipeClient(ChatClient.builder(chatModel),
+                RetryRegistry.of(RetryConfig.custom().maxAttempts(3).waitDuration(Duration.ofMillis(1))
+                        .retryExceptions(TransientAiException.class).build()),
+                TimeLimiterRegistry.of(TimeLimiterConfig.custom().timeoutDuration(Duration.ofMillis(200)).build()),
+                CircuitBreakerRegistry.of(CircuitBreakerConfig.custom().slidingWindowSize(4).minimumNumberOfCalls(4)
+                        .failureRateThreshold(50).waitDurationInOpenState(Duration.ofMinutes(1)).build()));
+    }
 
     private static ChatResponse response(String json) {
         return new ChatResponse(List.of(new Generation(new AssistantMessage(json))));
@@ -91,10 +99,7 @@ class AiRecipeClientTest {
 
         ChatModel badRequest = mock(ChatModel.class);
         given(badRequest.call(any(Prompt.class))).willThrow(new NonTransientAiException("400"));
-        AiRecipeClient other = new AiRecipeClient(ChatClient.builder(badRequest),
-                RetryRegistry.of(RetryConfig.custom().maxAttempts(3).waitDuration(Duration.ofMillis(1))
-                        .retryExceptions(TransientAiException.class).build()),
-                TimeLimiterRegistry.ofDefaults());
+        AiRecipeClient other = client(badRequest);
         assertThatThrownBy(() -> other.generate(List.of("달걀"))).isInstanceOf(NonTransientAiException.class);
         verify(badRequest, times(1)).call(any(Prompt.class));
     }
@@ -110,5 +115,19 @@ class AiRecipeClientTest {
         assertThatThrownBy(() -> client.generate(List.of("달걀")))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.AI_TIMEOUT);
+    }
+
+    @Test
+    @DisplayName("실패가 쌓여 서킷이 열리면 OpenAI를 부르지 않고 바로 AI003으로 실패한다")
+    void circuitOpens() {
+        given(chatModel.call(any(Prompt.class))).willThrow(new NonTransientAiException("400"));
+        for (int i = 0; i < 4; i++) {
+            assertThatThrownBy(() -> client.generate(List.of("달걀"))).isInstanceOf(NonTransientAiException.class);
+        }
+
+        assertThatThrownBy(() -> client.generate(List.of("달걀")))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.AI_UNAVAILABLE);
+        verify(chatModel, times(4)).call(any(Prompt.class));
     }
 }
