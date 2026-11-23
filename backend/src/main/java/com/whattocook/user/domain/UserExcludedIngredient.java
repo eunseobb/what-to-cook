@@ -17,7 +17,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** 알레르기·비선호 재료. 이 재료가 들어간 레시피는 추천에서 하드 필터로 뺀다. */
+/** 알레르기·비선호 재료. 알레르기 재료가 들어간 레시피만 추천에서 하드 필터로 뺀다. */
 @Getter
 @Entity
 @Table(name = "user_excluded_ingredient")
