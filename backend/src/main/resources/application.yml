@@ -78,6 +78,9 @@ app:
     refresh-token-validity: 14d
   report:
     hide-threshold: 5   # 누적 신고 수가 이 값에 이르면 레시피·댓글을 숨긴다.
+  like:
+    strategy: redis        # redis(Redis 원자 연산, 기본) | lock(비관적 락). 부하 테스트 비교용 전환 스위치
+    flush-interval: PT10S  # redis 방식에서 모은 카운트를 DB(recipe.like_count)에 반영하는 주기
 
 ---
 # ============================================================
