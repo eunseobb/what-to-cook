@@ -58,7 +58,11 @@ public enum ErrorCode {
 
     // Report (R 접두어는 Recipe가 쓰고 있어 RP를 쓴다)
     DUPLICATE_REPORT(HttpStatus.CONFLICT, "RP001", "이미 신고한 대상입니다."),
-    CANNOT_REPORT_OWN(HttpStatus.BAD_REQUEST, "RP002", "자신이 쓴 글은 신고할 수 없습니다.");
+    CANNOT_REPORT_OWN(HttpStatus.BAD_REQUEST, "RP002", "자신이 쓴 글은 신고할 수 없습니다."),
+
+    // AI 추천
+    AI_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AI001", "추천에 쓸 수 있는 재료가 없습니다. 재료 이름을 확인해 주세요."),
+    AI_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "AI002", "AI 추천 작업을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
