@@ -35,7 +35,12 @@ public enum ErrorCode {
     NOT_RECIPE_AUTHOR(HttpStatus.FORBIDDEN, "R002", "레시피 작성자만 수정·삭제할 수 있습니다."),
     RECIPE_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "R003", "존재하지 않는 재료가 포함되어 있습니다."),
     DUPLICATE_RECIPE_INGREDIENT(HttpStatus.BAD_REQUEST, "R004", "같은 재료를 두 번 넣을 수 없습니다."),
-    RECIPE_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "R005", "존재하지 않는 태그가 포함되어 있습니다.");
+    RECIPE_TAG_NOT_FOUND(HttpStatus.BAD_REQUEST, "R005", "존재하지 않는 태그가 포함되어 있습니다."),
+
+    // Comment (C 접두어는 Common이 쓰고 있어 CM을 쓴다)
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CM001", "댓글을 찾을 수 없습니다."),
+    NOT_COMMENT_AUTHOR(HttpStatus.FORBIDDEN, "CM002", "댓글 작성자만 수정·삭제할 수 있습니다."),
+    REPLY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "CM003", "대댓글에는 답글을 달 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
