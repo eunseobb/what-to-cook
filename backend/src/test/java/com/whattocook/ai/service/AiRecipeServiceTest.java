@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -115,7 +116,7 @@ class AiRecipeServiceTest {
 
         AiRecommendationResponse response = service.request(1L, List.of("계란"));
 
-        assertThat(response).isEqualTo(new AiRecommendationResponse(jobId, AiRecipeJobStatus.PENDING, null));
+        assertThat(response).isEqualTo(AiRecommendationResponse.pending(jobId));
         verify(aiRecipeClient, never()).generate(anyList());
 
         List<AiRecipeDraft> drafts = List.of(mock(AiRecipeDraft.class));
@@ -132,16 +133,20 @@ class AiRecipeServiceTest {
     }
 
     @Test
-    @DisplayName("LLM 호출이 실패하거나 검증을 통과한 레시피가 없으면 작업을 FAILED로 남긴다")
+    @DisplayName("LLM 호출이 실패하거나 검증을 통과한 레시피가 없으면 원인 코드와 함께 작업을 FAILED로 남긴다")
     void generateFails() {
-        given(aiRecipeClient.generate(List.of("달걀"))).willThrow(new IllegalStateException("timeout"));
+        given(aiRecipeClient.generate(List.of("달걀"))).willThrow(new BusinessException(ErrorCode.AI_UNAVAILABLE));
+        service.generate(jobId, 1L, List.of(egg), hash);
+        verify(jobStore).save(jobId, Job.failed(1L, ErrorCode.AI_UNAVAILABLE));
+
+        willThrow(new IllegalStateException("boom")).given(aiRecipeClient).generate(List.of("달걀"));
         service.generate(jobId, 1L, List.of(egg), hash);
 
         willReturn(List.of()).given(aiRecipeClient).generate(List.of("달걀"));
         given(draftValidator.toRecipes(List.of(), List.of(10L), hash)).willReturn(List.of());
         given(recipeRepository.saveAll(List.of())).willReturn(List.of());
         service.generate(jobId, 1L, List.of(egg), hash);
-        verify(jobStore, times(2)).save(jobId, new Job(1L, AiRecipeJobStatus.FAILED, List.of()));
+        verify(jobStore, times(2)).save(jobId, Job.failed(1L, ErrorCode.AI_GENERATION_FAILED));
     }
 
     @Test
@@ -159,7 +164,7 @@ class AiRecipeServiceTest {
         assertThatThrownBy(() -> service.request(1L, List.of("계란")))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.TOO_MANY_REQUESTS);
-        verify(jobStore).save(jobId, new Job(1L, AiRecipeJobStatus.FAILED, List.of()));
+        verify(jobStore).save(jobId, Job.failed(1L, ErrorCode.TOO_MANY_REQUESTS));
     }
 
     @Test
@@ -190,8 +195,15 @@ class AiRecipeServiceTest {
 
         UUID pending = UUID.randomUUID();
         given(jobStore.find(eq(pending))).willReturn(Optional.of(new Job(1L, AiRecipeJobStatus.PENDING, List.of())));
-        assertThat(service.getJob(1L, pending))
-                .isEqualTo(new AiRecommendationResponse(pending, AiRecipeJobStatus.PENDING, null));
+        assertThat(service.getJob(1L, pending)).isEqualTo(AiRecommendationResponse.pending(pending));
+
+        UUID failed = UUID.randomUUID();
+        given(jobStore.find(eq(failed))).willReturn(Optional.of(Job.failed(1L, ErrorCode.AI_TIMEOUT)));
+        assertThat(service.getJob(1L, failed)).satisfies(r -> {
+            assertThat(r.status()).isEqualTo(AiRecipeJobStatus.FAILED);
+            assertThat(r.errorCode()).isEqualTo("AI004");
+            assertThat(r.recipes()).isNull();
+        });
     }
 
     private static Ingredient ingredient(String name) {

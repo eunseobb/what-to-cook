@@ -63,7 +63,11 @@ public enum ErrorCode {
 
     // AI 추천
     AI_INGREDIENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AI001", "추천에 쓸 수 있는 재료가 없습니다. 재료 이름을 확인해 주세요."),
-    AI_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "AI002", "AI 추천 작업을 찾을 수 없습니다.");
+    AI_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "AI002", "AI 추천 작업을 찾을 수 없습니다."),
+    AI_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI003", "AI 추천을 잠시 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."),
+    AI_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "AI004", "AI 레시피 생성 시간이 초과되었습니다. 다시 시도해 주세요."),
+    AI_GENERATION_FAILED(HttpStatus.BAD_GATEWAY, "AI005", "AI 레시피를 만들지 못했습니다. 다시 시도해 주세요."),
+    AI_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "AI006", "AI 추천 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;
     private final String code;
