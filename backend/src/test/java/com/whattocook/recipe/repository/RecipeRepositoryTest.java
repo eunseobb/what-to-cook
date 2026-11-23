@@ -121,6 +121,29 @@ class RecipeRepositoryTest {
     }
 
     @Test
+    @DisplayName("작성자별 커서 조회는 내 게시 레시피만 최신순으로 주고 작성자를 함께 가져온다")
+    void cursorPageByAuthor() {
+        User other = userRepository.save(new User("other@example.com", "hashed", "남"));
+        Recipe mine = recipeRepository.save(recipe("내 것", List.of(), List.of(), List.of()));
+        Recipe hidden = recipeRepository.save(recipe("숨김", List.of(), List.of(), List.of()));
+        recipeRepository.save(Recipe.builder().author(other).source(RecipeSource.COMMUNITY).title("남의 것")
+                .difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1).build());
+        Recipe latest = recipeRepository.save(recipe("최신", List.of(), List.of(), List.of()));
+        hidden.hide();
+        em.flush();
+        em.clear();
+
+        List<Recipe> page = recipeRepository.findByAuthorIdAndStatusAndIdLessThanOrderByIdDesc(
+                author.getId(), RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(10));
+
+        assertThat(page).extracting(Recipe::getId).containsExactly(latest.getId(), mine.getId());
+        assertThat(em.getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(page.get(0).getAuthor())).isTrue();
+        assertThat(recipeRepository.findByAuthorIdAndStatusAndIdLessThanOrderByIdDesc(
+                author.getId(), RecipeStatus.PUBLISHED, latest.getId(), Limit.of(10)))
+                .extracting(Recipe::getId).containsExactly(mine.getId());
+    }
+
+    @Test
     @DisplayName("마이그레이션으로 종류별 기본 태그가 들어 있다")
     void seededTags() {
         assertThat(tagRepository.findAll()).extracting(Tag::getType)
