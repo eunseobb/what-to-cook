@@ -44,11 +44,12 @@ public class AiRecipeService {
     private final AiRecipeClient aiRecipeClient;
     private final AiRecipeDraftValidator draftValidator;
     private final AiRecipeJobStore jobStore;
+    private final AiRateLimiter rateLimiter;
     private final Executor executor;
 
     public AiRecipeService(IngredientNormalizationService normalizationService, RecipeRepository recipeRepository,
                            UserExcludedIngredientRepository excludedIngredientRepository, AiRecipeClient aiRecipeClient,
-                           AiRecipeDraftValidator draftValidator, AiRecipeJobStore jobStore,
+                           AiRecipeDraftValidator draftValidator, AiRecipeJobStore jobStore, AiRateLimiter rateLimiter,
                            @Qualifier(AiRecipeExecutorConfig.EXECUTOR) Executor executor) {
         this.normalizationService = normalizationService;
         this.recipeRepository = recipeRepository;
@@ -56,6 +57,7 @@ public class AiRecipeService {
         this.aiRecipeClient = aiRecipeClient;
         this.draftValidator = draftValidator;
         this.jobStore = jobStore;
+        this.rateLimiter = rateLimiter;
         this.executor = executor;
     }
 
@@ -74,6 +76,10 @@ public class AiRecipeService {
             return completed(jobId, userId, reused);
         }
 
+        // 실제로 LLM을 부르는 캐시 미스만 센다.
+        if (!rateLimiter.tryAcquire(userId)) {
+            throw new BusinessException(ErrorCode.AI_RATE_LIMITED);
+        }
         UUID jobId = jobStore.create(new Job(userId, AiRecipeJobStatus.PENDING, List.of()));
         try {
             executor.execute(() -> generate(jobId, userId, owned, hash));

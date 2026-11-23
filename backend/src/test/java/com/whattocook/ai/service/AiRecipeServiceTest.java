@@ -63,6 +63,8 @@ class AiRecipeServiceTest {
     private AiRecipeDraftValidator draftValidator;
     @Mock
     private AiRecipeJobStore jobStore;
+    @Mock
+    private AiRateLimiter rateLimiter;
 
     /** 제출된 작업을 바로 실행하지 않고 모아 두었다가 테스트에서 실행한다. */
     private final List<Runnable> submitted = new ArrayList<>();
@@ -77,7 +79,7 @@ class AiRecipeServiceTest {
     @BeforeEach
     void setUp() {
         service = new AiRecipeService(normalizationService, recipeRepository, excludedIngredientRepository,
-                aiRecipeClient, draftValidator, jobStore, submitted::add);
+                aiRecipeClient, draftValidator, jobStore, rateLimiter, submitted::add);
     }
 
     private void givenOwnedEgg() {
@@ -104,6 +106,7 @@ class AiRecipeServiceTest {
         assertThat(response.recipes().get(0).source()).isEqualTo(RecipeSource.AI_GENERATED);
         verify(jobStore).create(new Job(1L, AiRecipeJobStatus.COMPLETED, List.of(101L, 100L)));
         assertThat(submitted).isEmpty();
+        verify(rateLimiter, never()).tryAcquire(any());
     }
 
     @Test
@@ -112,6 +115,7 @@ class AiRecipeServiceTest {
         givenOwnedEgg();
         given(recipeRepository.findAllByIngredientSetHashAndSourceAndStatusOrderByIdAsc(any(), any(), any()))
                 .willReturn(List.of());
+        given(rateLimiter.tryAcquire(1L)).willReturn(true);
         given(jobStore.create(new Job(1L, AiRecipeJobStatus.PENDING, List.of()))).willReturn(jobId);
 
         AiRecommendationResponse response = service.request(1L, List.of("계란"));
@@ -153,11 +157,12 @@ class AiRecipeServiceTest {
     @DisplayName("스레드 풀이 가득 차면 작업을 FAILED로 남기고 429로 거절한다")
     void rejected() {
         service = new AiRecipeService(normalizationService, recipeRepository, excludedIngredientRepository,
-                aiRecipeClient, draftValidator, jobStore, task -> {
+                aiRecipeClient, draftValidator, jobStore, rateLimiter, task -> {
             throw new RejectedExecutionException();
         });
         given(recipeRepository.findAllByIngredientSetHashAndSourceAndStatusOrderByIdAsc(any(), any(), any()))
                 .willReturn(List.of());
+        given(rateLimiter.tryAcquire(1L)).willReturn(true);
         given(jobStore.create(any())).willReturn(jobId);
         givenOwnedEgg();
 
@@ -165,6 +170,21 @@ class AiRecipeServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.TOO_MANY_REQUESTS);
         verify(jobStore).save(jobId, Job.failed(1L, ErrorCode.TOO_MANY_REQUESTS));
+    }
+
+    @Test
+    @DisplayName("캐시 미스에서 사용자별 LLM 호출 한도를 넘으면 작업을 만들지 않고 429(AI006)로 거절한다")
+    void rateLimited() {
+        givenOwnedEgg();
+        given(recipeRepository.findAllByIngredientSetHashAndSourceAndStatusOrderByIdAsc(any(), any(), any()))
+                .willReturn(List.of());
+        given(rateLimiter.tryAcquire(1L)).willReturn(false);
+
+        assertThatThrownBy(() -> service.request(1L, List.of("계란")))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.AI_RATE_LIMITED);
+        verify(jobStore, never()).create(any());
+        assertThat(submitted).isEmpty();
     }
 
     @Test
