@@ -80,6 +80,41 @@ class CommentServiceTest {
     }
 
     @Test
+    @DisplayName("숨긴 댓글은 내용·작성자를 가리고 \"숨겨진 댓글\"로 표시한다")
+    void listHidden() {
+        Comment hidden = withId(new Comment(recipe, other, null, "광고"), 10L);
+        hidden.hide();
+        Comment reply = withId(new Comment(recipe, writer, hidden, "답글"), 11L);
+        given(recipeRepository.findByIdAndStatus(5L, RecipeStatus.PUBLISHED)).willReturn(Optional.of(recipe));
+        given(commentRepository.findRootPage(5L, 0L, Limit.of(21))).willReturn(List.of(hidden));
+        given(commentRepository.findRepliesByParentIds(List.of(10L))).willReturn(List.of(reply));
+
+        CommentResponse item = commentService.list(5L, null, 20).items().get(0);
+
+        assertThat(item.hidden()).isTrue();
+        assertThat(item.deleted()).isFalse();
+        assertThat(item.content()).isEqualTo(CommentResponse.HIDDEN_CONTENT);
+        assertThat(item.authorId()).isNull();
+        assertThat(item.replies()).extracting(CommentResponse::content).containsExactly("답글");
+    }
+
+    @Test
+    @DisplayName("숨긴 댓글에는 대댓글을 달 수 없고, 작성자도 수정·삭제할 수 없다")
+    void hiddenComment() {
+        Comment hidden = withId(new Comment(recipe, writer, null, "광고"), 10L);
+        hidden.hide();
+        given(recipeRepository.findByIdAndStatus(5L, RecipeStatus.PUBLISHED)).willReturn(Optional.of(recipe));
+        given(commentRepository.findById(10L)).willReturn(Optional.of(hidden));
+
+        assertThatThrownBy(() -> commentService.create(2L, 5L, new CommentCreateRequest("답변", 10L)))
+                .extracting("errorCode").isEqualTo(ErrorCode.COMMENT_NOT_FOUND);
+        assertThatThrownBy(() -> commentService.update(1L, 10L, "고침"))
+                .extracting("errorCode").isEqualTo(ErrorCode.COMMENT_NOT_FOUND);
+        assertThatThrownBy(() -> commentService.delete(1L, 10L))
+                .extracting("errorCode").isEqualTo(ErrorCode.COMMENT_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("게시 중이 아닌 레시피의 댓글은 조회할 수 없다")
     void listOfMissingRecipe() {
         given(recipeRepository.findByIdAndStatus(5L, RecipeStatus.PUBLISHED)).willReturn(Optional.empty());

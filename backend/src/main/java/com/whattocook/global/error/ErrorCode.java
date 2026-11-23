@@ -49,7 +49,11 @@ public enum ErrorCode {
     // Comment (C 접두어는 Common이 쓰고 있어 CM을 쓴다)
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CM001", "댓글을 찾을 수 없습니다."),
     NOT_COMMENT_AUTHOR(HttpStatus.FORBIDDEN, "CM002", "댓글 작성자만 수정·삭제할 수 있습니다."),
-    REPLY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "CM003", "대댓글에는 답글을 달 수 없습니다.");
+    REPLY_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "CM003", "대댓글에는 답글을 달 수 없습니다."),
+
+    // Report (R 접두어는 Recipe가 쓰고 있어 RP를 쓴다)
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "RP001", "이미 신고한 대상입니다."),
+    CANNOT_REPORT_OWN(HttpStatus.BAD_REQUEST, "RP002", "자신이 쓴 글은 신고할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

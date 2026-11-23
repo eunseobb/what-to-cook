@@ -7,6 +7,8 @@ spring:
 app:
   jwt:
     secret: test-only-jwt-secret-0123456789-abcdefghij
+  report:
+    hide-threshold: 3   # 통합 테스트에서 적은 인원으로 숨김을 확인한다.
 
 logging:
   level:
