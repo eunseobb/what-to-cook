@@ -1,6 +1,7 @@
 package com.whattocook.recipe.repository;
 
 import com.whattocook.recipe.domain.Recipe;
+import com.whattocook.recipe.domain.RecipeSource;
 import com.whattocook.recipe.domain.RecipeStatus;
 import jakarta.persistence.LockModeType;
 import java.util.List;
@@ -25,6 +26,10 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     List<Recipe> findByStatusAndIdLessThanOrderByIdDesc(RecipeStatus status, Long cursorId, Limit limit);
 
     boolean existsByIdAndStatus(Long id, RecipeStatus status);
+
+    /** 같은 재료 집합으로 만든 AI 레시피 재사용(캐시 히트) 조회. recipe(ingredient_set_hash) 인덱스를 탄다. */
+    List<Recipe> findAllByIngredientSetHashAndSourceAndStatusOrderByIdAsc(String ingredientSetHash,
+                                                                          RecipeSource source, RecipeStatus status);
 
     /** 비관적 락 방식 좋아요: SELECT ... FOR UPDATE로 레시피 행을 잡아 같은 레시피 요청을 직렬화한다. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

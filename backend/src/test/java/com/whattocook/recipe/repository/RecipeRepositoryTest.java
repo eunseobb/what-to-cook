@@ -121,10 +121,32 @@ class RecipeRepositoryTest {
     }
 
     @Test
+    @DisplayName("재료 집합 해시가 같은 게시 중인 AI 레시피만 재사용 대상으로 찾는다")
+    void findAiRecipesByIngredientSetHash() {
+        Recipe ai = recipeRepository.save(aiRecipe("AI 파달걀", "hash-a"));
+        recipeRepository.save(aiRecipe("다른 재료", "hash-b"));
+        recipeRepository.save(aiRecipe("삭제된 AI", "hash-a")).delete();
+        recipeRepository.save(Recipe.builder().author(author).source(RecipeSource.COMMUNITY).ingredientSetHash("hash-a")
+                .title("커뮤니티").difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1).build());
+        recipeRepository.flush();
+
+        assertThat(recipeRepository.findAllByIngredientSetHashAndSourceAndStatusOrderByIdAsc(
+                "hash-a", RecipeSource.AI_GENERATED, RecipeStatus.PUBLISHED))
+                .extracting(Recipe::getId).containsExactly(ai.getId());
+    }
+
+    @Test
     @DisplayName("마이그레이션으로 종류별 기본 태그가 들어 있다")
     void seededTags() {
         assertThat(tagRepository.findAll()).extracting(Tag::getType)
                 .contains(TagType.CUISINE, TagType.TASTE, TagType.PURPOSE, TagType.DIFFICULTY);
+    }
+
+    private Recipe aiRecipe(String title, String hash) {
+        return Recipe.builder()
+                .source(RecipeSource.AI_GENERATED).ingredientSetHash(hash).title(title)
+                .difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1)
+                .build();
     }
 
     private Recipe recipe(String title, List<RecipeIngredient> ingredients, List<RecipeStep> steps, List<Tag> tags) {
