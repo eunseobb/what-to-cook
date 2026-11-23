@@ -18,6 +18,11 @@ spring:
         jdbc:
           time_zone: UTC
 
+  ai:
+    retry:
+      max-attempts: 1      # Spring AI 자체 재시도는 끄고 Resilience4j(resilience4j.retry.openai) 한 곳에서만 재시도한다.
+      on-http-codes: 429   # 429는 기본으로 비일시 오류라 일시 오류(TransientAiException)로 분류해 재시도 대상에 넣는다.
+
   jackson:
     time-zone: Asia/Seoul
     default-property-inclusion: non_null
@@ -63,12 +68,19 @@ resilience4j:
   retry:
     instances:
       openai:
-        max-attempts: 2
+        max-attempts: 3
         wait-duration: 500ms
+        enable-exponential-backoff: true   # 500ms → 1s
+        exponential-backoff-multiplier: 2
+        # 일시 오류(5xx·429·네트워크)만 재시도한다. 4xx·타임아웃·서킷 오픈은 재시도하지 않는다.
+        retry-exceptions:
+          - org.springframework.ai.retry.TransientAiException
+          - org.springframework.web.client.ResourceAccessException
   timelimiter:
     instances:
       openai:
         timeout-duration: 30s
+        cancel-running-future: true
 
 app:
   cors:
