@@ -1,7 +1,8 @@
+@import './styles/tokens.css';
+
 :root {
-  font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  font-family: var(--font-family-base);
   line-height: 1.5;
-  color-scheme: light dark;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -14,14 +15,23 @@
 body {
   margin: 0;
   min-height: 100dvh;
+  background: var(--color-canvas);
+  color: var(--color-text-body);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-text-primary);
 }
 
 /* 모바일 우선: 좁은 화면이 기본이고, 넓은 화면에서는 가운데 정렬한 최대 폭을 둔다 */
 main {
   max-width: 960px;
   margin: 0 auto;
-  padding: 16px;
+  padding: var(--space-4);
   /* 노치가 있는 기기(PWA 단독 실행, 앱 웹뷰)에서 안전 영역을 피한다 */
-  padding-left: max(16px, env(safe-area-inset-left));
-  padding-right: max(16px, env(safe-area-inset-right));
+  padding-left: max(var(--space-4), env(safe-area-inset-left));
+  padding-right: max(var(--space-4), env(safe-area-inset-right));
 }
