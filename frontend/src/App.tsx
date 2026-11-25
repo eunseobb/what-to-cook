@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
+import { RecipeBrowse } from './components/recipe/RecipeBrowse.tsx'
 import AppLayout from './layout/AppLayout.tsx'
 
 export default function App() {
@@ -16,7 +17,7 @@ export default function App() {
             }
           />
           {/* 각 화면 내용은 해당 기능에서 채운다 */}
-          <Route path="browse" element={<h1>둘러보기</h1>} />
+          <Route path="browse" element={<RecipeBrowse />} />
           <Route path="search" element={<h1>검색</h1>} />
           <Route path="mypage" element={<h1>마이페이지</h1>} />
         </Route>
