@@ -217,6 +217,7 @@
 ### 참고 시안 (확정)
 - 메인 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD
 - 회원가입·로그인 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD?node-id=15-9
+- 온보딩 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD?node-id=16-2
 - UI를 구현할 때 Figma MCP로 시안을 읽어 레이아웃, 간격, 크기, 배치를 맞춘다.
 - 시안의 색상값은 위 디자인 토큰(CSS 변수)으로 바꿔 쓴다. 값을 하드코딩하지 않는다.
 - 시안의 폰트(Noto Sans KR)는 임시 폰트다. 구현은 Pretendard로 한다.
