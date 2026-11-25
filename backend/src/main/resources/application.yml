@@ -22,6 +22,13 @@ spring:
     time-zone: Asia/Seoul
     default-property-inclusion: non_null
 
+  ai:
+    openai:
+      chat:
+        options:
+          # 모델은 코드 수정 없이 환경변수로 바꾼다. JSON Schema(Structured Output)를 지원하는 모델이어야 한다.
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+
 server:
   shutdown: graceful
   servlet:

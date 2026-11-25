@@ -22,10 +22,10 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.ResponseFormat;
 
 /** 실제 OpenAI 대신 ChatModel을 Mock으로 두고 요청 형식과 응답 변환만 확인한다. */
-class AiRecipeClientTest {
+class OpenAiRecipeClientTest {
 
     private final ChatModel chatModel = mock(ChatModel.class);
-    private final AiRecipeClient client = new AiRecipeClient(ChatClient.builder(chatModel));
+    private final OpenAiRecipeClient client = new OpenAiRecipeClient(ChatClient.builder(chatModel));
 
     @Test
     @DisplayName("strict JSON Schema로 요청하고 응답 JSON을 레시피 초안으로 바꾼다")
