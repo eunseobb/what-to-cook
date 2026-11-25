@@ -28,7 +28,7 @@ h4 {
 
 /* 모바일 우선: 좁은 화면이 기본이고, 넓은 화면에서는 가운데 정렬한 최대 폭을 둔다 */
 main {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-4);
   /* 노치가 있는 기기(PWA 단독 실행, 앱 웹뷰)에서 안전 영역을 피한다 */
