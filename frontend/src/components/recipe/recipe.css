@@ -191,3 +191,138 @@
     font-size: 18px;
   }
 }
+
+/* 둘러보기 화면 */
+.browse {
+  display: flex;
+  flex-direction: column;
+  /* 시안: 헤더 아래 64px(main 패딩 16px 포함), 히어로와 목록 사이 72px */
+  gap: calc(var(--space-16) + var(--space-2));
+  padding-top: var(--space-12);
+}
+
+.browse__hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.browse__hero p,
+.browse__title {
+  margin: 0;
+}
+
+/* 데스크톱은 헤더에 로고가 있어 히어로의 로고를 숨긴다 */
+.browse__brand {
+  display: none;
+}
+
+.browse__title {
+  font-size: 44px;
+  font-weight: 700;
+}
+
+.browse__desc {
+  color: var(--color-text-muted);
+  font-size: 18px;
+}
+
+.browse__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.browse__error {
+  margin: 0;
+  color: var(--color-danger);
+  text-align: center;
+}
+
+.browse__more {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-2);
+}
+
+.browse__more-button {
+  height: var(--space-12);
+  padding: 0 28px;
+  border: 1px solid var(--color-accent-navy);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-accent-navy);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.browse__more-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.browse__more-button:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+/* 화면 전체 폭 띠. 그림자로 배경만 넓혀 가로 스크롤을 만들지 않는다 */
+.browse__cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding: 56px 0;
+  background: var(--color-surface-soft);
+  box-shadow: 0 0 0 100vmax var(--color-surface-soft);
+  clip-path: inset(0 -100vmax);
+  text-align: center;
+}
+
+.browse__cta-title {
+  margin: 0;
+  font-size: 28px;
+}
+
+.browse__cta-desc {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+@media (max-aspect-ratio: 3/4) {
+  .browse {
+    gap: var(--space-10);
+    padding-top: var(--space-1);
+  }
+
+  .browse__hero {
+    gap: var(--space-3);
+  }
+
+  .browse__brand {
+    display: block;
+    color: var(--color-primary-strong);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .browse__title {
+    font-size: 24px;
+  }
+
+  .browse__desc {
+    font-size: 14px;
+  }
+
+  .browse__list {
+    gap: var(--space-3);
+  }
+
+  /* 모바일 시안에는 AI 추천 띠가 없다 */
+  .browse__cta {
+    display: none;
+  }
+}
