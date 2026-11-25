@@ -1,0 +1,53 @@
+/*
+ * 디자인 토큰. 컴포넌트는 색상·radius·간격 값을 하드코딩하지 않고 이 변수만 쓴다.
+ * 접근성: --color-primary 위 흰 글씨는 18.66px 이상 굵은 글씨(버튼 라벨 등)에만 쓴다(대비 약 3.6:1).
+ * 작은 녹색 글씨나 cream 배경 위 녹색 텍스트는 --color-primary-strong을 쓴다.
+ */
+:root {
+  color-scheme: light;
+
+  --color-canvas: #fffaf0;
+  --color-surface-soft: #faf5e8;
+  --color-surface-card: #f5f0e0;
+  --color-surface-dark: #0a1a1a;
+  --color-hairline: #e5e5e5;
+  --color-text-primary: #0a0a0a;
+  --color-text-body: #3a3a3a;
+  --color-text-muted: #6a6a6a;
+  --color-text-muted-soft: #9a9a9a;
+  --color-primary: #729103;
+  --color-primary-strong: #5a7302;
+  --color-accent-navy: #24506b;
+  --color-accent-plum: #49274f;
+  --color-accent-sage: #c8d1a6;
+  --color-accent-gray: #c8c8cc;
+  /* 오류·경고: danger 글씨는 canvas·danger-soft 위에서 대비 4.5:1 이상 */
+  --color-danger: #a64b42;
+  --color-danger-soft: #f9e9e4;
+
+  --font-family-base: "Pretendard Variable", Pretendard, -apple-system, sans-serif;
+
+  /* 모서리: 확정 시안 값 */
+  --radius-card: 16px; /* 카드 썸네일 */
+  --radius-search: 18px; /* 재료 검색창 */
+  --radius-control: 12px; /* 필터 칩, 버튼, 입력창 */
+  --radius-tag: 6px; /* 카드 안 대표 태그 */
+  --radius-pill: 999px; /* AI 생성 배지 */
+
+  /* 간격은 4px 배수 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+}
+
+/* 다크모드: 같은 토큰 이름을 여기서 재정의한다. 다크 색상 값은 추후 결정. */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
