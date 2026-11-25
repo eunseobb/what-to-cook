@@ -27,6 +27,7 @@ import com.whattocook.recipe.dto.RecipeCreateRequest;
 import com.whattocook.recipe.dto.RecipeIngredientRequest;
 import com.whattocook.recipe.dto.RecipeStepRequest;
 import com.whattocook.recipe.dto.RecipeSummaryResponse;
+import com.whattocook.recipe.dto.TagResponse;
 import com.whattocook.recipe.dto.RecipeUpdateRequest;
 import com.whattocook.recipe.repository.RecipeRepository;
 import com.whattocook.recipe.repository.TagRepository;
@@ -175,16 +176,21 @@ class RecipeServiceTest {
     }
 
     @Test
-    @DisplayName("목록은 size + 1건을 조회해 다음 커서를 만든다")
+    @DisplayName("목록은 size + 1건을 조회해 다음 커서를 만들고, 항목마다 대표 태그를 담는다")
     void list() {
+        Recipe tagged = recipe(9L);
+        tagged.replaceTags(List.of(korean));
         given(recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
                 RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(3)))
-                .willReturn(List.of(recipe(9L), recipe(8L), recipe(7L)));
+                .willReturn(List.of(tagged, recipe(8L), recipe(7L)));
 
         CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(null, 2);
 
         assertThat(page.items()).extracting(RecipeSummaryResponse::id).containsExactly(9L, 8L);
         assertThat(page.items().get(0).authorNickname()).isEqualTo("요리사");
+        assertThat(page.items().get(0).representativeTag())
+                .isEqualTo(new TagResponse(100L, TagType.CUISINE, "한식", "accent-sage"));
+        assertThat(page.items().get(1).representativeTag()).isNull();
         assertThat(page.hasNext()).isTrue();
         assertThat(page.nextCursor()).isEqualTo("8");
     }

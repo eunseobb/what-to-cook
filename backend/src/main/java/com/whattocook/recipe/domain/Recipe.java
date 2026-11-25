@@ -20,6 +20,7 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -111,6 +112,17 @@ public class Recipe extends BaseTimeEntity {
         replaceIngredients(ingredients);
         replaceSteps(steps);
         replaceTags(tags);
+    }
+
+    /**
+     * 카드에 보일 대표 태그 1개. TagType 선언 순서(음식 종류 → 맛 → 목적 → 난이도)로 고르고,
+     * 같은 종류끼리는 id가 작은(먼저 등록된) 태그를 쓴다. 태그가 없으면 null.
+     */
+    public Tag getRepresentativeTag() {
+        return tags.stream()
+                .min(Comparator.comparing(Tag::getType)
+                        .thenComparing(Tag::getId, Comparator.nullsLast(Comparator.naturalOrder())))
+                .orElse(null);
     }
 
     public boolean isWrittenBy(Long userId) {
