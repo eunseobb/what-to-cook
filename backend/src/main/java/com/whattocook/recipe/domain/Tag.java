@@ -33,6 +33,10 @@ public class Tag extends BaseTimeEntity {
     @Column(nullable = false, length = 30)
     private String name;
 
+    /** 이미지 없는 카드의 플레이스홀더 색. 색값이 아니라 프론트 디자인 토큰 이름이다(accent-sage → --color-accent-sage). */
+    @Column(name = "color_key", nullable = false, length = 30)
+    private String colorKey = "accent-sage";
+
     public Tag(TagType type, String name) {
         this.type = type;
         this.name = name.strip();
