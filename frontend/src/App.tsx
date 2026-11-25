@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import { LoginPage } from './components/auth/LoginPage.tsx'
 import { SignupPage } from './components/auth/SignupPage.tsx'
 import AppLayout from './layout/AppLayout.tsx'
+import RequireAuth from './layout/RequireAuth.tsx'
 
 export default function App() {
   return (
@@ -20,12 +21,18 @@ export default function App() {
           {/* 각 화면 내용은 해당 기능에서 채운다 */}
           <Route path="browse" element={<h1>둘러보기</h1>} />
           <Route path="search" element={<h1>검색</h1>} />
-          <Route path="mypage" element={<h1>마이페이지</h1>} />
+          <Route element={<RequireAuth />}>
+            <Route path="mypage" element={<h1>마이페이지</h1>} />
+          </Route>
         </Route>
         {/* 모바일에서 하단 탭바 없는 전체 화면 */}
         <Route element={<AppLayout hideTabBar />}>
           <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignupPage />} />
+          <Route element={<RequireAuth />}>
+            {/* 온보딩 화면은 F9-5에서 구현한다 */}
+            <Route path="onboarding" element={<h1>온보딩</h1>} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
