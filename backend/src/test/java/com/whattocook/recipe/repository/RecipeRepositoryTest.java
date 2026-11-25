@@ -9,6 +9,7 @@ import com.whattocook.ingredient.repository.IngredientRepository;
 import com.whattocook.recipe.domain.Difficulty;
 import com.whattocook.recipe.domain.Recipe;
 import com.whattocook.recipe.domain.RecipeIngredient;
+import com.whattocook.recipe.domain.RecipeSort;
 import com.whattocook.recipe.domain.RecipeSource;
 import com.whattocook.recipe.domain.RecipeStatus;
 import com.whattocook.recipe.domain.RecipeStep;
@@ -19,6 +20,7 @@ import com.whattocook.user.domain.User;
 import com.whattocook.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -118,6 +120,65 @@ class RecipeRepositoryTest {
                 RecipeStatus.PUBLISHED, third.getId(), Limit.of(2)))
                 .extracting(Recipe::getId).containsExactly(first.getId());
         assertThat(recipeRepository.findByIdAndStatus(deleted.getId(), RecipeStatus.PUBLISHED)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("인기순은 (좋아요 수, 작성 시각, id) 내림차순이고 복합 커서로 넘겨도 중복·누락이 없다")
+    void searchPopularWithCompositeCursor() {
+        LocalDateTime sameTime = LocalDateTime.of(2026, 11, 1, 12, 0);
+        Recipe a = saveWith("a", 5, sameTime);
+        Recipe b = saveWith("b", 5, sameTime);
+        Recipe c = saveWith("c", 9, sameTime.minusDays(1));
+        Recipe d = saveWith("d", 0, sameTime.plusDays(1));
+        Recipe hidden = saveWith("hidden", 100, sameTime);
+        hidden.hide();
+        em.flush();
+        em.clear();
+        RecipeListCondition popular = new RecipeListCondition(List.of(), RecipeSort.POPULAR, null);
+
+        List<Recipe> first = recipeRepository.search(popular, null, 2);
+        Recipe last = first.get(1);
+        List<Recipe> second = recipeRepository.search(popular,
+                new RecipeCursor(last.getLikeCount(), last.getCreatedAt(), last.getId()), 10);
+
+        assertThat(first).extracting(Recipe::getId).containsExactly(c.getId(), b.getId());
+        assertThat(second).extracting(Recipe::getId).containsExactly(a.getId(), d.getId());
+        assertThat(first.get(0).getAuthor().getNickname()).isEqualTo("요리사");
+    }
+
+    @Test
+    @DisplayName("태그는 모두 가진 레시피만, 기간은 기준 시각 이후 작성된 레시피만 남긴다")
+    void searchByTagsAndPeriod() {
+        List<Tag> tags = tagRepository.findAll().stream().limit(2).toList();
+        Recipe both = recipeRepository.save(recipe("both", List.of(), List.of(), tags));
+        Recipe one = recipeRepository.save(recipe("one", List.of(), List.of(), tags.subList(0, 1)));
+        Recipe old = recipeRepository.save(recipe("old", List.of(), List.of(), tags));
+        recipeRepository.flush();
+        setCreatedAt(old, LocalDateTime.now().minusDays(10));
+        em.clear();
+        Long t1 = tags.get(0).getId();
+        Long t2 = tags.get(1).getId();
+        LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1, t2), RecipeSort.LATEST, null), null, 10))
+                .extracting(Recipe::getId).containsExactly(old.getId(), both.getId());
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1), RecipeSort.LATEST, weekAgo), null, 10))
+                .extracting(Recipe::getId).containsExactly(one.getId(), both.getId());
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1), RecipeSort.LATEST, null),
+                new RecipeCursor(0, null, one.getId()), 10))
+                .extracting(Recipe::getId).containsExactly(both.getId());
+    }
+
+    private Recipe saveWith(String title, int likeCount, LocalDateTime createdAt) {
+        Recipe saved = recipeRepository.saveAndFlush(recipe(title, List.of(), List.of(), List.of()));
+        recipeRepository.addLikeCount(saved.getId(), likeCount);
+        setCreatedAt(saved, createdAt);
+        return saved;
+    }
+
+    private void setCreatedAt(Recipe recipe, LocalDateTime createdAt) {
+        em.createNativeQuery("update recipe set created_at = :createdAt where id = :id")
+                .setParameter("createdAt", createdAt).setParameter("id", recipe.getId()).executeUpdate();
     }
 
     @Test
