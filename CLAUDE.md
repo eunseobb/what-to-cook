@@ -174,6 +174,7 @@
 | `--color-accent-navy` | `#24506b` | 보조: 정보성 배지, 보조 버튼 |
 | `--color-accent-plum` | `#49274f` | 보조: AI 생성 배지 |
 | `--color-accent-sage` | `#c8d1a6` | 보조: 태그 칩 배경, 선택 영역 |
+| `--color-accent-sage-soft` | `#eef1e1` | 카드 안 대표 태그, 재료 검색창의 재료 칩 배경 (글씨는 `--color-primary-strong`) |
 | `--color-accent-gray` | `#c8c8cc` | 보조: 비활성, 구분선, 플레이스홀더 |
 | `--color-danger` | `#a64b42` | 오류·경고 글씨, 테두리 (톤다운된 빨간 계열) |
 | `--color-danger-soft` | `#f9e9e4` | 오류·경고 메시지 배경 |
@@ -218,6 +219,7 @@
 - 메인 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD
 - 회원가입·로그인 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD?node-id=15-9
 - 온보딩 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD?node-id=16-2
+- 재료 검색 결과 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD?node-id=18-503
 - UI를 구현할 때 Figma MCP로 시안을 읽어 레이아웃, 간격, 크기, 배치를 맞춘다.
 - 시안의 색상값은 위 디자인 토큰(CSS 변수)으로 바꿔 쓴다. 값을 하드코딩하지 않는다.
 - 시안의 폰트(Noto Sans KR)는 임시 폰트다. 구현은 Pretendard로 한다.
