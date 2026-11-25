@@ -162,6 +162,7 @@
 | `--color-canvas` | `#fffaf0` | 기본 페이지 배경 |
 | `--color-surface-soft` | `#faf5e8` | 푸터, CTA 띠 배경 |
 | `--color-surface-card` | `#f5f0e0` | 강조 카드, 후기 |
+| `--color-surface-input` | `#ffffff` | 입력창 배경 |
 | `--color-surface-dark` | `#0a1a1a` | 드물게 쓰는 어두운 면 |
 | `--color-hairline` | `#e5e5e5` | 1px 테두리 |
 | `--color-text-primary` | `#0a0a0a` | 제목, 주요 텍스트 |
@@ -215,6 +216,7 @@
 
 ### 참고 시안 (확정)
 - 메인 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD
+- 회원가입·로그인 화면(데스크톱 1440px, 모바일 390px): https://www.figma.com/design/o5B37h3CYHw7A8V7gComCD?node-id=15-9
 - UI를 구현할 때 Figma MCP로 시안을 읽어 레이아웃, 간격, 크기, 배치를 맞춘다.
 - 시안의 색상값은 위 디자인 토큰(CSS 변수)으로 바꿔 쓴다. 값을 하드코딩하지 않는다.
 - 시안의 폰트(Noto Sans KR)는 임시 폰트다. 구현은 Pretendard로 한다.
