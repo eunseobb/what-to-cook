@@ -3,6 +3,10 @@ package com.whattocook.recommendation.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import com.whattocook.community.domain.RecipeBookmark;
+import com.whattocook.community.domain.RecipeLike;
+import com.whattocook.community.repository.RecipeBookmarkRepository;
+import com.whattocook.community.repository.RecipeLikeRepository;
 import com.whattocook.global.config.JpaConfig;
 import com.whattocook.ingredient.domain.Ingredient;
 import com.whattocook.ingredient.domain.IngredientCategory;
@@ -48,6 +52,10 @@ class RecommendationRepositoryTest {
     @Autowired
     private UserExcludedIngredientRepository excludedIngredientRepository;
     @Autowired
+    private RecipeLikeRepository recipeLikeRepository;
+    @Autowired
+    private RecipeBookmarkRepository recipeBookmarkRepository;
+    @Autowired
     private EntityManager em;
 
     private User user;
@@ -87,6 +95,21 @@ class RecommendationRepositoryTest {
         assertThat(candidates)
                 .extracting(MatchCandidate::getRecipeId, MatchCandidate::getMatchedCount, MatchCandidate::getRequiredCount)
                 .containsExactly(tuple(full.getId(), 2L, 2L), tuple(half.getId(), 1L, 2L));
+    }
+
+    @Test
+    @DisplayName("AI 레시피는 좋아요나 저장을 받은 것만 후보에 넣는다")
+    void aiRecipesNeedLikeOrBookmark() {
+        Recipe liked = recipe("좋아요 받은 AI", RecipeSource.AI_GENERATED, egg, onion);
+        Recipe bookmarked = recipe("저장된 AI", RecipeSource.AI_GENERATED, egg);
+        recipe("반응 없는 AI", RecipeSource.AI_GENERATED, egg);
+        recipeLikeRepository.save(new RecipeLike(user, liked));
+        recipeBookmarkRepository.save(new RecipeBookmark(user, bookmarked));
+        em.flush();
+
+        assertThat(recommendationRepository.findMatchCandidates(user.getId(), List.of(egg.getId(), onion.getId()), 10))
+                .extracting(MatchCandidate::getRecipeId)
+                .containsExactlyInAnyOrder(liked.getId(), bookmarked.getId());
     }
 
     @Test

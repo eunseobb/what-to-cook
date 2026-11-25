@@ -60,6 +60,32 @@ public class RecipeService {
         return recipeRepository.save(recipe).getId();
     }
 
+    /**
+     * AI 레시피를 내 커뮤니티 레시피로 복사한다. 이후 편집은 일반 수정 API로 한다.
+     * 원본 AI 레시피는 다른 사용자도 재사용하므로 건드리지 않는다.
+     */
+    @Transactional
+    public Long forkAiRecipe(Long userId, Long recipeId) {
+        Recipe source = findPublished(recipeId);
+        if (source.getSource() != RecipeSource.AI_GENERATED) {
+            throw new BusinessException(ErrorCode.NOT_AI_RECIPE);
+        }
+        Recipe copy = Recipe.builder()
+                .author(userRepository.getReferenceById(userId))
+                .source(RecipeSource.COMMUNITY)
+                .title(source.getTitle())
+                .mainImageUrl(source.getMainImageUrl())
+                .difficulty(source.getDifficulty())
+                .cookTimeMinutes(source.getCookTimeMinutes())
+                .servings(source.getServings())
+                .ingredients(source.getIngredients().stream()
+                        .map(i -> new RecipeIngredient(i.getIngredient(), i.getQuantity(), i.getUnit())).toList())
+                .steps(source.getSteps().stream().map(s -> new RecipeStep(s.getContent(), s.getImageUrl())).toList())
+                .tags(source.getTags())
+                .build();
+        return recipeRepository.save(copy).getId();
+    }
+
     public RecipeDetailResponse get(Long recipeId) {
         return RecipeDetailResponse.from(findPublished(recipeId));
     }

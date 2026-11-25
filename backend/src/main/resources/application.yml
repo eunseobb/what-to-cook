@@ -22,6 +22,13 @@ spring:
     time-zone: Asia/Seoul
     default-property-inclusion: non_null
 
+  ai:
+    openai:
+      chat:
+        options:
+          # 모델은 코드 수정 없이 환경변수로 바꾼다. JSON Schema(Structured Output)를 지원하는 모델이어야 한다.
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+
 server:
   shutdown: graceful
   servlet:
@@ -91,6 +98,10 @@ app:
     taste-weight: 0.25
     popularity-weight: 0.15
     candidate-limit: 200   # 일치율 상위 후보만 DB에서 가져와 점수를 매긴다(후보군 사전 축소).
+  ai:
+    pool-size: 4           # LLM 호출 전용 스레드 수 (웹 요청 스레드와 격리)
+    queue-capacity: 50     # 스레드가 모두 바쁠 때 대기할 작업 수. 넘치면 429
+    job-ttl: PT10M         # 폴링용 작업 상태 보관 시간 (Redis)
 
 ---
 # ============================================================

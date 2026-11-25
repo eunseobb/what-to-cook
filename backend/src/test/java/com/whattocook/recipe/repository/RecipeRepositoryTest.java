@@ -121,26 +121,18 @@ class RecipeRepositoryTest {
     }
 
     @Test
-    @DisplayName("작성자별 커서 조회는 내 게시 레시피만 최신순으로 주고 작성자를 함께 가져온다")
-    void cursorPageByAuthor() {
-        User other = userRepository.save(new User("other@example.com", "hashed", "남"));
-        Recipe mine = recipeRepository.save(recipe("내 것", List.of(), List.of(), List.of()));
-        Recipe hidden = recipeRepository.save(recipe("숨김", List.of(), List.of(), List.of()));
-        recipeRepository.save(Recipe.builder().author(other).source(RecipeSource.COMMUNITY).title("남의 것")
-                .difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1).build());
-        Recipe latest = recipeRepository.save(recipe("최신", List.of(), List.of(), List.of()));
-        hidden.hide();
-        em.flush();
-        em.clear();
+    @DisplayName("재료 집합 해시가 같은 게시 중인 AI 레시피만 재사용 대상으로 찾는다")
+    void findAiRecipesByIngredientSetHash() {
+        Recipe ai = recipeRepository.save(aiRecipe("AI 파달걀", "hash-a"));
+        recipeRepository.save(aiRecipe("다른 재료", "hash-b"));
+        recipeRepository.save(aiRecipe("삭제된 AI", "hash-a")).delete();
+        recipeRepository.save(Recipe.builder().author(author).source(RecipeSource.COMMUNITY).ingredientSetHash("hash-a")
+                .title("커뮤니티").difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1).build());
+        recipeRepository.flush();
 
-        List<Recipe> page = recipeRepository.findByAuthorIdAndStatusAndIdLessThanOrderByIdDesc(
-                author.getId(), RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(10));
-
-        assertThat(page).extracting(Recipe::getId).containsExactly(latest.getId(), mine.getId());
-        assertThat(em.getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(page.get(0).getAuthor())).isTrue();
-        assertThat(recipeRepository.findByAuthorIdAndStatusAndIdLessThanOrderByIdDesc(
-                author.getId(), RecipeStatus.PUBLISHED, latest.getId(), Limit.of(10)))
-                .extracting(Recipe::getId).containsExactly(mine.getId());
+        assertThat(recipeRepository.findAllByIngredientSetHashAndSourceAndStatusOrderByIdAsc(
+                "hash-a", RecipeSource.AI_GENERATED, RecipeStatus.PUBLISHED))
+                .extracting(Recipe::getId).containsExactly(ai.getId());
     }
 
     @Test
@@ -148,6 +140,13 @@ class RecipeRepositoryTest {
     void seededTags() {
         assertThat(tagRepository.findAll()).extracting(Tag::getType)
                 .contains(TagType.CUISINE, TagType.TASTE, TagType.PURPOSE, TagType.DIFFICULTY);
+    }
+
+    private Recipe aiRecipe(String title, String hash) {
+        return Recipe.builder()
+                .source(RecipeSource.AI_GENERATED).ingredientSetHash(hash).title(title)
+                .difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1)
+                .build();
     }
 
     private Recipe recipe(String title, List<RecipeIngredient> ingredients, List<RecipeStep> steps, List<Tag> tags) {

@@ -10,7 +10,8 @@ import org.springframework.data.repository.query.Param;
 public interface RecommendationRepository extends Repository<Recipe, Long> {
 
     /**
-     * 보유 재료가 하나라도 들어간 게시 중인 커뮤니티 레시피를 일치율 순으로 추린다(후보군 사전 축소).
+     * 보유 재료가 하나라도 들어간 게시 중인 레시피를 일치율 순으로 추린다(후보군 사전 축소).
+     * 커뮤니티 레시피와, 누군가 좋아요·저장한 AI 레시피(사람이 한 번 검증한 것으로 본다)가 대상이다.
      * 기본 양념은 일치·필요 재료 수에서 빼고, 사용자의 알레르기 재료가 든 레시피는 제외한다.
      * 보유 재료 → 레시피 탐색은 recipe_ingredient(ingredient_id, recipe_id) 인덱스만으로 끝난다.
      */
@@ -24,7 +25,9 @@ public interface RecommendationRepository extends Repository<Recipe, Long> {
             where ri.recipe_id in (select o.recipe_id from recipe_ingredient o where o.ingredient_id in (:ownedIds))
               and i.is_pantry_staple = false
               and r.status = 'PUBLISHED'
-              and r.source = 'COMMUNITY'
+              and (r.source = 'COMMUNITY'
+                   or exists (select 1 from recipe_like l where l.recipe_id = r.id)
+                   or exists (select 1 from recipe_bookmark b where b.recipe_id = r.id))
               and not exists (select 1
                               from recipe_ingredient a
                               join user_excluded_ingredient e on e.ingredient_id = a.ingredient_id
