@@ -14,12 +14,15 @@ import com.whattocook.recipe.domain.RecipeStatus;
 import com.whattocook.recipe.domain.RecipeStep;
 import com.whattocook.recipe.domain.Tag;
 import com.whattocook.recipe.domain.TagType;
+import com.whattocook.recipe.dto.RecipeSummaryResponse;
 import com.whattocook.support.TestcontainersConfiguration;
 import com.whattocook.user.domain.User;
 import com.whattocook.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.List;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,6 +121,27 @@ class RecipeRepositoryTest {
                 RecipeStatus.PUBLISHED, third.getId(), Limit.of(2)))
                 .extracting(Recipe::getId).containsExactly(first.getId());
         assertThat(recipeRepository.findByIdAndStatus(deleted.getId(), RecipeStatus.PUBLISHED)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("목록의 대표 태그는 레시피 수와 상관없이 일정한 쿼리 수로 가져온다(N+1 없음)")
+    void listWithRepresentativeTagWithoutNPlusOne() {
+        List<Tag> tags = tagRepository.findAll();
+        for (int i = 0; i < 5; i++) {
+            recipeRepository.save(recipe("레시피" + i, List.of(), List.of(), tags.subList(i, i + 2)));
+        }
+        recipeRepository.flush();
+        em.clear();
+        Statistics stats = em.getEntityManagerFactory().unwrap(SessionFactory.class).getStatistics();
+        stats.setStatisticsEnabled(true);
+        stats.clear();
+
+        List<RecipeSummaryResponse> items = recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
+                RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(5)).stream().map(RecipeSummaryResponse::from).toList();
+
+        assertThat(items).hasSize(5).allSatisfy(item -> assertThat(item.representativeTag()).isNotNull());
+        // 목록 1 + 작성자 1 + 태그 1(IN 배치). N+1이면 레시피 수만큼 늘어난다.
+        assertThat(stats.getPrepareStatementCount()).isLessThanOrEqualTo(3);
     }
 
     @Test
