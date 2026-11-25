@@ -1,14 +1,17 @@
 package com.whattocook.recipe.repository;
 
 import static com.whattocook.recipe.domain.QRecipe.recipe;
+import static com.whattocook.user.domain.QUserExcludedIngredient.userExcludedIngredient;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.whattocook.recipe.domain.Recipe;
 import com.whattocook.recipe.domain.RecipeSort;
 import com.whattocook.recipe.domain.RecipeStatus;
+import com.whattocook.user.domain.ExclusionType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +27,17 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
         condition.tagIds().forEach(tagId -> where.and(recipe.tags.any().id.eq(tagId)));
         if (condition.createdAfter() != null) {
             where.and(recipe.createdAt.goe(condition.createdAfter()));
+        }
+        if (condition.source() != null) {
+            where.and(recipe.source.eq(condition.source()));
+        }
+        if (condition.allergyUserId() != null) {
+            // 알레르기 재료가 하나라도 든 레시피를 뺀다. 비선호(DISLIKE)는 하드 필터에 쓰지 않는다.
+            where.and(JPAExpressions.selectOne().from(userExcludedIngredient)
+                    .where(userExcludedIngredient.user.id.eq(condition.allergyUserId()),
+                            userExcludedIngredient.type.eq(ExclusionType.ALLERGY),
+                            recipe.ingredients.any().ingredient.eq(userExcludedIngredient.ingredient))
+                    .notExists());
         }
         if (cursor != null) {
             where.and(after(cursor, condition.sort()));

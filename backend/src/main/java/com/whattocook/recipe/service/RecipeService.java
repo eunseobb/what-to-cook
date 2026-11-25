@@ -96,12 +96,14 @@ public class RecipeService {
     /**
      * @param tagIds 모두 가진 레시피만 조회. 비어 있으면 필터 없음
      * @param days   최근 N일 안에 작성된 레시피만. null이면 기간 제한 없음
+     * @param source 이 출처의 레시피만. null이면 전체
+     * @param userId 로그인 사용자면 알레르기 재료가 든 레시피를 뺀다. 비로그인은 null
      * @param cursor 이전 페이지의 nextCursor. 첫 페이지는 null. 형식은 정렬마다 다르다({@link RecipeCursor}).
      */
     public CursorPageResponse<RecipeSummaryResponse> list(List<Long> tagIds, RecipeSort sort, Integer days,
-                                                          String cursor, int size) {
+                                                          RecipeSource source, Long userId, String cursor, int size) {
         RecipeListCondition condition = new RecipeListCondition(tagIds, sort,
-                days == null ? null : LocalDateTime.now().minusDays(days));
+                days == null ? null : LocalDateTime.now().minusDays(days), source, userId);
         List<RecipeSummaryResponse> fetched = recipeRepository.search(
                         condition, RecipeCursor.decode(cursor, condition.sort()), size + 1)
                 .stream().map(RecipeSummaryResponse::from).toList();

@@ -183,10 +183,10 @@ class RecipeServiceTest {
     void list() {
         Recipe tagged = recipe(9L);
         tagged.replaceTags(List.of(korean));
-        given(recipeRepository.search(new RecipeListCondition(List.of(), RecipeSort.LATEST, null), null, 3))
+        given(recipeRepository.search(new RecipeListCondition(List.of(), RecipeSort.LATEST, null, null, null), null, 3))
                 .willReturn(List.of(tagged, recipe(8L), recipe(7L)));
 
-        CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(null, null, null, null, 2);
+        CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(null, null, null, null, null, null, 2);
 
         assertThat(page.items()).extracting(RecipeSummaryResponse::id).containsExactly(9L, 8L);
         assertThat(page.items().get(0).authorNickname()).isEqualTo("요리사");
@@ -210,10 +210,12 @@ class RecipeServiceTest {
                 .willReturn(List.of(top, next, recipe(7L)));
 
         CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(
-                List.of(100L, 100L), RecipeSort.POPULAR, 7, "7_" + createdAt + "_10", 2);
+                List.of(100L, 100L), RecipeSort.POPULAR, 7, RecipeSource.AI_GENERATED, 3L, "7_" + createdAt + "_10", 2);
 
         assertThat(page.nextCursor()).isEqualTo("4_2026-11-20T09:30:15.000123_8");
         assertThat(condition.getValue().tagIds()).containsExactly(100L);
+        assertThat(condition.getValue().source()).isEqualTo(RecipeSource.AI_GENERATED);
+        assertThat(condition.getValue().allergyUserId()).isEqualTo(3L);
         assertThat(condition.getValue().createdAfter())
                 .isBetween(LocalDateTime.now().minusDays(7).minusMinutes(1), LocalDateTime.now().minusDays(7));
     }
@@ -221,10 +223,10 @@ class RecipeServiceTest {
     @Test
     @DisplayName("정렬과 맞지 않거나 깨진 커서는 잘못된 입력으로 거절한다")
     void listInvalidCursor() {
-        assertThatThrownBy(() -> recipeService.list(null, RecipeSort.POPULAR, null, "8", 2))
+        assertThatThrownBy(() -> recipeService.list(null, RecipeSort.POPULAR, null, null, null, "8", 2))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
-        assertThatThrownBy(() -> recipeService.list(null, RecipeSort.LATEST, null, "4_x_8", 2))
+        assertThatThrownBy(() -> recipeService.list(null, RecipeSort.LATEST, null, null, null, "4_x_8", 2))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
     }
