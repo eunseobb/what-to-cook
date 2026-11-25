@@ -23,6 +23,7 @@ export function RecipeCard({ recipe }: { recipe: RecipeCardData }) {
       <div className="recipe-card__meta">
         {tag && <span className="recipe-card__tag">{tag.name}</span>}
         <span>· {recipe.cookTimeMinutes}분</span>
+        <span>· 좋아요 {recipe.likeCount.toLocaleString('ko-KR')}</span>
         {recipe.matchRate !== undefined && (
           <span className="recipe-card__match">일치 {Math.round(recipe.matchRate * 100)}%</span>
         )}
