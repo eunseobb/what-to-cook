@@ -104,11 +104,11 @@ public class SeedDataLoader implements ApplicationRunner {
                 .build();
     }
 
-    /** ingredient,source,price,package_amount,reference_date → 기준 단위당 가격 */
+    /** ingredient,price,package_amount,reference_date → 기준 단위당 가격(출처 MANUAL, 기준 시각은 그날 0시) */
     private static IngredientPrice toPrice(String[] row, Map<String, Ingredient> ingredientByName) {
-        BigDecimal perBaseUnit = new BigDecimal(row[2]).divide(new BigDecimal(row[3]), 4, RoundingMode.HALF_UP);
+        BigDecimal perBaseUnit = new BigDecimal(row[1]).divide(new BigDecimal(row[2]), 4, RoundingMode.HALF_UP);
         return new IngredientPrice(find(ingredientByName, row[0], PRICES), perBaseUnit,
-                LocalDate.parse(row[4]), PriceSource.valueOf(row[1]));
+                LocalDate.parse(row[3]).atStartOfDay(), PriceSource.MANUAL);
     }
 
     private static List<String> split(String value) {

@@ -15,19 +15,19 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 재료의 기준 단위(Ingredient.baseUnit)당 가격. 출처와 기준일을 함께 저장해 "약 ○○원"과 함께 보여준다.
+ * 재료의 기준 단위(Ingredient.baseUnit)당 가격. 출처와 기준 시각을 함께 저장해 "약 ○○원"과 함께 보여준다.
  */
 @Getter
 @Entity
 @Table(name = "ingredient_price", uniqueConstraints = @UniqueConstraint(
-        name = "uk_ingredient_price_ingredient_source_date",
-        columnNames = {"ingredient_id", "source", "reference_date"}))
+        name = "uk_ingredient_price_ingredient_source_referenced_at",
+        columnNames = {"ingredient_id", "source", "referenced_at"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class IngredientPrice extends BaseTimeEntity {
 
@@ -42,18 +42,18 @@ public class IngredientPrice extends BaseTimeEntity {
     @Column(name = "price_per_base_unit", nullable = false, precision = 12, scale = 4)
     private BigDecimal pricePerBaseUnit;
 
-    @Column(name = "reference_date", nullable = false)
-    private LocalDate referenceDate;
+    @Column(name = "referenced_at", nullable = false)
+    private LocalDateTime referencedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PriceSource source;
 
-    public IngredientPrice(Ingredient ingredient, BigDecimal pricePerBaseUnit, LocalDate referenceDate,
+    public IngredientPrice(Ingredient ingredient, BigDecimal pricePerBaseUnit, LocalDateTime referencedAt,
                            PriceSource source) {
         this.ingredient = ingredient;
         this.pricePerBaseUnit = pricePerBaseUnit;
-        this.referenceDate = referenceDate;
+        this.referencedAt = referencedAt;
         this.source = source;
     }
 }

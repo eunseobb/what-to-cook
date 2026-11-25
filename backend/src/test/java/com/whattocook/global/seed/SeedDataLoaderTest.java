@@ -73,10 +73,10 @@ class SeedDataLoaderTest {
 
         List<IngredientPrice> prices = ingredientPriceRepository.findAll();
         assertThat(prices).hasSizeGreaterThanOrEqualTo(150);
-        assertThat(prices).extracting(IngredientPrice::getSource).contains(PriceSource.values());
         assertThat(prices).allSatisfy(p -> {
             assertThat(p.getPricePerBaseUnit()).isPositive();
-            assertThat(p.getReferenceDate()).isNotNull();
+            assertThat(p.getSource()).isEqualTo(PriceSource.MANUAL);
+            assertThat(p.getReferencedAt()).isNotNull();
         });
     }
 
