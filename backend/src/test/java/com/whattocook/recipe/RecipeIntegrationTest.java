@@ -1,5 +1,6 @@
 package com.whattocook.recipe;
 
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -14,12 +15,16 @@ import com.whattocook.ingredient.domain.IngredientCategory;
 import com.whattocook.ingredient.repository.IngredientRepository;
 import com.whattocook.recipe.domain.Difficulty;
 import com.whattocook.recipe.domain.Recipe;
+import com.whattocook.recipe.domain.RecipeIngredient;
 import com.whattocook.recipe.domain.RecipeSource;
 import com.whattocook.recipe.domain.Tag;
 import com.whattocook.recipe.repository.RecipeRepository;
 import com.whattocook.recipe.repository.TagRepository;
 import com.whattocook.support.TestcontainersConfiguration;
+import com.whattocook.user.domain.ExclusionType;
 import com.whattocook.user.domain.User;
+import com.whattocook.user.domain.UserExcludedIngredient;
+import com.whattocook.user.repository.UserExcludedIngredientRepository;
 import com.whattocook.user.repository.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -59,6 +64,8 @@ class RecipeIntegrationTest {
     private RecipeRepository recipeRepository;
     @Autowired
     private TagRepository tagRepository;
+    @Autowired
+    private UserExcludedIngredientRepository excludedIngredientRepository;
 
     private User author;
     private User other;
@@ -79,8 +86,9 @@ class RecipeIntegrationTest {
     void tearDown() {
         // 다른 통합 테스트와 같은 DB를 쓰므로 만든 데이터만 FK 순서대로 지운다.
         recipeRepository.deleteAll();
-        ingredientRepository.deleteAll(List.of(egg, greenOnion));
+        // 알레르기 설정은 사용자 삭제 때 DB에서 같이 지워지므로 재료보다 먼저 지운다.
         userRepository.deleteAll(List.of(author, other));
+        ingredientRepository.deleteAll(List.of(egg, greenOnion));
     }
 
     @Test
@@ -197,6 +205,30 @@ class RecipeIntegrationTest {
         mockMvc.perform(get("/api/recipes").param("sort", "RANDOM"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("C002"));
+    }
+
+    @Test
+    @DisplayName("출처로 거르고, 로그인 사용자는 알레르기 재료가 든 레시피를 받지 않는다")
+    void listBySourceExcludingAllergy() throws Exception {
+        Recipe eggAi = recipeRepository.save(aiRecipe("AI 달걀찜", egg));
+        Recipe onionAi = recipeRepository.save(aiRecipe("AI 파무침", greenOnion));
+        recipeRepository.save(listed("커뮤니티", 0, null));
+        excludedIngredientRepository.save(new UserExcludedIngredient(other, greenOnion, ExclusionType.ALLERGY));
+
+        mockMvc.perform(get("/api/recipes").param("source", "AI_GENERATED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].id").value(contains(onionAi.getId().intValue(), eggAi.getId().intValue())));
+        mockMvc.perform(get("/api/recipes").param("source", "AI_GENERATED").header(HttpHeaders.AUTHORIZATION, bearer(other)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].id").value(contains(eggAi.getId().intValue())));
+        mockMvc.perform(get("/api/recipes").param("source", "UNKNOWN"))
+                .andExpect(status().isBadRequest());
+    }
+
+    private Recipe aiRecipe(String title, Ingredient ingredient) {
+        return Recipe.builder().source(RecipeSource.AI_GENERATED).title(title)
+                .difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1)
+                .ingredients(List.of(new RecipeIngredient(ingredient, null, null))).build();
     }
 
     private Recipe listed(String title, int likeCount, Tag tag) {

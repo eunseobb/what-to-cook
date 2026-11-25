@@ -17,11 +17,15 @@ import com.whattocook.recipe.domain.Tag;
 import com.whattocook.recipe.domain.TagType;
 import com.whattocook.recipe.dto.RecipeSummaryResponse;
 import com.whattocook.support.TestcontainersConfiguration;
+import com.whattocook.user.domain.ExclusionType;
 import com.whattocook.user.domain.User;
+import com.whattocook.user.domain.UserExcludedIngredient;
+import com.whattocook.user.repository.UserExcludedIngredientRepository;
 import com.whattocook.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
@@ -48,6 +52,8 @@ class RecipeRepositoryTest {
     private IngredientRepository ingredientRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserExcludedIngredientRepository excludedIngredientRepository;
     @Autowired
     private EntityManager em;
 
@@ -115,7 +121,7 @@ class RecipeRepositoryTest {
         deleted.delete();
         recipeRepository.flush();
 
-        RecipeListCondition latest = new RecipeListCondition(List.of(), RecipeSort.LATEST, null);
+        RecipeListCondition latest = new RecipeListCondition(List.of(), RecipeSort.LATEST, null, null, null);
         assertThat(recipeRepository.search(latest, null, 2))
                 .extracting(Recipe::getId).containsExactly(fourth.getId(), third.getId());
         assertThat(recipeRepository.search(latest, new RecipeCursor(0, null, third.getId()), 2))
@@ -135,7 +141,7 @@ class RecipeRepositoryTest {
         hidden.hide();
         em.flush();
         em.clear();
-        RecipeListCondition popular = new RecipeListCondition(List.of(), RecipeSort.POPULAR, null);
+        RecipeListCondition popular = new RecipeListCondition(List.of(), RecipeSort.POPULAR, null, null, null);
 
         List<Recipe> first = recipeRepository.search(popular, null, 2);
         Recipe last = first.get(1);
@@ -161,13 +167,41 @@ class RecipeRepositoryTest {
         Long t2 = tags.get(1).getId();
         LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
 
-        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1, t2), RecipeSort.LATEST, null), null, 10))
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1, t2), RecipeSort.LATEST, null, null, null), null, 10))
                 .extracting(Recipe::getId).containsExactly(old.getId(), both.getId());
-        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1), RecipeSort.LATEST, weekAgo), null, 10))
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1), RecipeSort.LATEST, weekAgo, null, null), null, 10))
                 .extracting(Recipe::getId).containsExactly(one.getId(), both.getId());
-        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1), RecipeSort.LATEST, null),
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(t1), RecipeSort.LATEST, null, null, null),
                 new RecipeCursor(0, null, one.getId()), 10))
                 .extracting(Recipe::getId).containsExactly(both.getId());
+    }
+
+    @Test
+    @DisplayName("출처로 거르고, 사용자의 알레르기 재료가 든 레시피는 빼되 비선호 재료 레시피는 남긴다")
+    void searchBySourceExcludingAllergy() {
+        Ingredient peanut = ingredientRepository.save(Ingredient.builder()
+                .name("땅콩").category(IngredientCategory.ETC).baseUnit("g").build());
+        excludedIngredientRepository.save(new UserExcludedIngredient(author, peanut, ExclusionType.ALLERGY));
+        excludedIngredientRepository.save(new UserExcludedIngredient(author, greenOnion, ExclusionType.DISLIKE));
+        Recipe plain = recipeRepository.save(aiRecipeWith("AI 달걀찜", egg));
+        recipeRepository.save(aiRecipeWith("AI 땅콩조림", egg, peanut));
+        Recipe disliked = recipeRepository.save(aiRecipeWith("AI 파달걀", egg, greenOnion));
+        recipeRepository.save(recipe("커뮤니티", List.of(), List.of(), List.of()));
+        recipeRepository.flush();
+
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(), RecipeSort.LATEST, null,
+                RecipeSource.AI_GENERATED, author.getId()), null, 10))
+                .extracting(Recipe::getId).containsExactly(disliked.getId(), plain.getId());
+        assertThat(recipeRepository.search(new RecipeListCondition(List.of(), RecipeSort.LATEST, null,
+                RecipeSource.AI_GENERATED, null), null, 10))
+                .extracting(Recipe::getTitle).containsExactly("AI 파달걀", "AI 땅콩조림", "AI 달걀찜");
+    }
+
+    private Recipe aiRecipeWith(String title, Ingredient... ingredients) {
+        return Recipe.builder().source(RecipeSource.AI_GENERATED).title(title)
+                .difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1)
+                .ingredients(Arrays.stream(ingredients).map(i -> new RecipeIngredient(i, null, null)).toList())
+                .build();
     }
 
     private Recipe saveWith(String title, int likeCount, LocalDateTime createdAt) {
@@ -196,7 +230,7 @@ class RecipeRepositoryTest {
         stats.clear();
 
         List<RecipeSummaryResponse> items = recipeRepository.search(
-                new RecipeListCondition(List.of(), RecipeSort.LATEST, null), null, 5)
+                new RecipeListCondition(List.of(), RecipeSort.LATEST, null, null, null), null, 5)
                 .stream().map(RecipeSummaryResponse::from).toList();
 
         assertThat(items).hasSize(5).allSatisfy(item -> assertThat(item.representativeTag()).isNotNull());
