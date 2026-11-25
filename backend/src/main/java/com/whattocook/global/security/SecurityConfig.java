@@ -57,7 +57,8 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/recipes", "/api/recipes/*", "/api/recipes/*/comments", "/api/tags").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/recipes", "/api/recipes/*", "/api/recipes/*/comments", "/api/tags",
+                                "/api/ingredients").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class);

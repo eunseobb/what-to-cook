@@ -70,6 +70,22 @@ class IngredientAutocompleteIntegrationTest {
     }
 
     @Test
+    @DisplayName("인증 없이 재료 ID로 요청 순서대로 이름을 찾고, 없는 ID는 뺀다")
+    void findByIds() throws Exception {
+        List<Ingredient> saved = ingredientRepository.findAll();
+        Ingredient first = saved.get(0);
+        Ingredient last = saved.get(2);
+
+        mockMvc.perform(get("/api/ingredients")
+                        .param("id", String.valueOf(last.getId()), String.valueOf(first.getId()), "999999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(last.getId()))
+                .andExpect(jsonPath("$[0].name").value(last.getName()))
+                .andExpect(jsonPath("$[1].id").value(first.getId()));
+    }
+
+    @Test
     @DisplayName("q가 없으면 공통 에러 포맷으로 400을 응답한다")
     void missingQuery() throws Exception {
         mockMvc.perform(get("/api/ingredients/autocomplete"))

@@ -3,6 +3,7 @@ package com.whattocook.ingredient.service;
 import com.whattocook.ingredient.domain.Ingredient;
 import com.whattocook.ingredient.dto.IngredientAutocompleteResponse;
 import com.whattocook.ingredient.repository.IngredientRepository;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,6 +59,18 @@ public class IngredientAutocompleteService {
             }
         }
         return List.copyOf(byId.values());
+    }
+
+    /** 요청한 ID 순서대로 표준 재료를 준다. 없는 ID는 뺀다. */
+    @Transactional(readOnly = true)
+    public List<IngredientAutocompleteResponse> findByIds(List<Long> ids) {
+        Map<Long, String> names = new HashMap<>();
+        for (Ingredient ingredient : ingredientRepository.findAllById(ids)) {
+            names.put(ingredient.getId(), ingredient.getName());
+        }
+        return ids.stream().distinct().filter(names::containsKey)
+                .map(id -> new IngredientAutocompleteResponse(id, names.get(id)))
+                .toList();
     }
 
     /** 재료 마스터 전체로 색인을 다시 만든다. 임시 키에 채운 뒤 RENAME해 조회 중 빈 결과가 나오지 않게 한다. */
