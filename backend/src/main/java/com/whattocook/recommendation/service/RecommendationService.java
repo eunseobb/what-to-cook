@@ -41,7 +41,7 @@ public class RecommendationService {
         List<Long> ownedIds = normalizationService.normalize(request.ingredients()).matched().stream()
                 .map(Ingredient::getId).toList();
         List<MatchCandidate> candidates = ownedIds.isEmpty() ? List.of()
-                : recommendationRepository.findMatchCandidates(userId, ownedIds, properties.candidateLimit());
+                : recommendationRepository.findMatchCandidates(userId, ownedIds, List.of(), 0, properties.candidateLimit());
         if (candidates.isEmpty()) {
             return new CursorPageResponse<>(List.of(), null, false);
         }

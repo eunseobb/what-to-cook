@@ -15,7 +15,10 @@ import com.whattocook.recipe.domain.Difficulty;
 import com.whattocook.recipe.domain.Recipe;
 import com.whattocook.recipe.domain.RecipeIngredient;
 import com.whattocook.recipe.domain.RecipeSource;
+import com.whattocook.recipe.domain.Tag;
+import com.whattocook.recipe.domain.TagType;
 import com.whattocook.recipe.repository.RecipeRepository;
+import com.whattocook.recipe.repository.TagRepository;
 import com.whattocook.recommendation.repository.RecommendationRepository.MatchCandidate;
 import com.whattocook.support.TestcontainersConfiguration;
 import com.whattocook.user.domain.ExclusionType;
@@ -56,6 +59,8 @@ class RecommendationRepositoryTest {
     @Autowired
     private RecipeBookmarkRepository recipeBookmarkRepository;
     @Autowired
+    private TagRepository tagRepository;
+    @Autowired
     private EntityManager em;
 
     private User user;
@@ -90,7 +95,7 @@ class RecommendationRepositoryTest {
         em.flush();
 
         List<MatchCandidate> candidates = recommendationRepository.findMatchCandidates(
-                user.getId(), List.of(egg.getId(), onion.getId(), soySauce.getId()), 10);
+                user.getId(), List.of(egg.getId(), onion.getId(), soySauce.getId()), List.of(), 0, 10);
 
         assertThat(candidates)
                 .extracting(MatchCandidate::getRecipeId, MatchCandidate::getMatchedCount, MatchCandidate::getRequiredCount)
@@ -107,7 +112,7 @@ class RecommendationRepositoryTest {
         recipeBookmarkRepository.save(new RecipeBookmark(user, bookmarked));
         em.flush();
 
-        assertThat(recommendationRepository.findMatchCandidates(user.getId(), List.of(egg.getId(), onion.getId()), 10))
+        assertThat(recommendationRepository.findMatchCandidates(user.getId(), List.of(egg.getId(), onion.getId()), List.of(), 0, 10))
                 .extracting(MatchCandidate::getRecipeId)
                 .containsExactlyInAnyOrder(liked.getId(), bookmarked.getId());
     }
@@ -119,8 +124,24 @@ class RecommendationRepositoryTest {
         recipe("토마토달걀볶음", RecipeSource.COMMUNITY, egg, tomato);
         em.flush();
 
-        assertThat(recommendationRepository.findMatchCandidates(user.getId(), List.of(egg.getId(), onion.getId()), 1))
+        assertThat(recommendationRepository.findMatchCandidates(user.getId(), List.of(egg.getId(), onion.getId()), List.of(), 0, 1))
                 .extracting(MatchCandidate::getRecipeId).containsExactly(full.getId());
+    }
+
+    @Test
+    @DisplayName("태그를 주면 그 태그를 모두 가진 레시피만 남긴다")
+    void filterByTags() {
+        Tag korean = tagRepository.save(new Tag(TagType.CUISINE, "한식-추천테스트"));
+        Tag quick = tagRepository.save(new Tag(TagType.PURPOSE, "간단-추천테스트"));
+        Recipe both = recipe("달걀양파볶음", RecipeSource.COMMUNITY, egg, onion);
+        both.replaceTags(List.of(korean, quick));
+        recipe("달걀국", RecipeSource.COMMUNITY, egg).replaceTags(List.of(korean));
+        recipe("양파볶음", RecipeSource.COMMUNITY, onion);
+        em.flush();
+
+        assertThat(recommendationRepository.findMatchCandidates(user.getId(), List.of(egg.getId(), onion.getId()),
+                List.of(korean.getId(), quick.getId()), 2, 10))
+                .extracting(MatchCandidate::getRecipeId).containsExactly(both.getId());
     }
 
     private Ingredient ingredient(String name, boolean pantryStaple) {

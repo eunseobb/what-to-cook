@@ -102,12 +102,12 @@ class RecommendationServiceTest {
 
         assertThat(page.items()).isEmpty();
         assertThat(page.hasNext()).isFalse();
-        verify(recommendationRepository, never()).findMatchCandidates(any(), any(), anyInt());
+        verify(recommendationRepository, never()).findMatchCandidates(any(), any(), any(), anyInt(), anyInt());
     }
 
     private void givenCandidates() {
         given(normalizationService.normalize(any())).willReturn(new IngredientNormalizationResult(List.of(egg), List.of()));
-        given(recommendationRepository.findMatchCandidates(1L, List.of(10L), 200)).willReturn(List.of(
+        given(recommendationRepository.findMatchCandidates(1L, List.of(10L), List.of(), 0, 200)).willReturn(List.of(
                 new Candidate(1L, 2, 2), new Candidate(2L, 1, 2), new Candidate(3L, 1, 2)));
         given(recipeRepository.findAllById(List.of(1L, 2L, 3L))).willReturn(List.of(
                 recipe(1L, 0, List.of()), recipe(2L, 9, List.of(korean)), recipe(3L, 0, List.of())));
