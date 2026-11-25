@@ -21,7 +21,7 @@
 .recipe-card__thumb {
   position: relative;
   aspect-ratio: 4 / 3;
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   overflow: hidden;
 }
 
@@ -37,7 +37,7 @@
   top: 10px;
   left: 10px;
   padding: 3px var(--space-2);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-accent-plum);
   color: var(--color-canvas);
   font-size: 12px;
@@ -55,7 +55,7 @@
 /* 시안의 칩 배경(#eef1e1)은 토큰에 없어 sage를 canvas에 섞어 근사한다(primary-strong 글씨 대비 4.5:1 이상) */
 .recipe-card__tag {
   padding: 2px var(--space-2);
-  border-radius: calc(var(--radius) / 2);
+  border-radius: var(--radius-tag);
   background: color-mix(in srgb, var(--color-accent-sage) 30%, var(--color-canvas));
   color: var(--color-primary-strong);
   font-size: 12px;
@@ -89,7 +89,7 @@
 .recipe-card:focus-visible {
   outline: 2px solid var(--color-primary-strong);
   outline-offset: var(--space-1);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
 }
 
 /* 스켈레톤 */
@@ -124,7 +124,7 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-12) var(--space-4);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   background: var(--color-surface-soft);
   text-align: center;
 }
@@ -143,7 +143,7 @@
 .recipe-empty__button {
   padding: 14px 28px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   background: var(--color-primary);
   color: var(--color-canvas);
   font: inherit;
