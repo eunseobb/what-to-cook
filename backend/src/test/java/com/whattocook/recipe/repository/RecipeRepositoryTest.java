@@ -180,6 +180,9 @@ class RecipeRepositoryTest {
     private void setCreatedAt(Recipe recipe, LocalDateTime createdAt) {
         em.createNativeQuery("update recipe set created_at = :createdAt where id = :id")
                 .setParameter("createdAt", createdAt).setParameter("id", recipe.getId()).executeUpdate();
+    }
+
+    @Test
     @DisplayName("목록의 대표 태그는 레시피 수와 상관없이 일정한 쿼리 수로 가져온다(N+1 없음)")
     void listWithRepresentativeTagWithoutNPlusOne() {
         List<Tag> tags = tagRepository.findAll();
@@ -192,8 +195,9 @@ class RecipeRepositoryTest {
         stats.setStatisticsEnabled(true);
         stats.clear();
 
-        List<RecipeSummaryResponse> items = recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
-                RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(5)).stream().map(RecipeSummaryResponse::from).toList();
+        List<RecipeSummaryResponse> items = recipeRepository.search(
+                new RecipeListCondition(List.of(), RecipeSort.LATEST, null), null, 5)
+                .stream().map(RecipeSummaryResponse::from).toList();
 
         assertThat(items).hasSize(5).allSatisfy(item -> assertThat(item.representativeTag()).isNotNull());
         // 목록 1 + 작성자 1 + 태그 1(IN 배치). N+1이면 레시피 수만큼 늘어난다.

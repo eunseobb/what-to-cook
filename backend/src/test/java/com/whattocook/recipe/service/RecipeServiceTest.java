@@ -181,12 +181,9 @@ class RecipeServiceTest {
     @Test
     @DisplayName("목록은 size + 1건을 조회해 다음 커서를 만들고, 항목마다 대표 태그를 담는다")
     void list() {
-        given(recipeRepository.search(new RecipeListCondition(List.of(), RecipeSort.LATEST, null), null, 3))
-                .willReturn(List.of(recipe(9L), recipe(8L), recipe(7L)));
         Recipe tagged = recipe(9L);
         tagged.replaceTags(List.of(korean));
-        given(recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
-                RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(3)))
+        given(recipeRepository.search(new RecipeListCondition(List.of(), RecipeSort.LATEST, null), null, 3))
                 .willReturn(List.of(tagged, recipe(8L), recipe(7L)));
 
         CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(null, null, null, null, 2);
