@@ -52,11 +52,10 @@
   font-size: 13px;
 }
 
-/* 시안의 칩 배경(#eef1e1)은 토큰에 없어 sage를 canvas에 섞어 근사한다(primary-strong 글씨 대비 4.5:1 이상) */
 .recipe-card__tag {
   padding: 2px var(--space-2);
   border-radius: var(--radius-tag);
-  background: color-mix(in srgb, var(--color-accent-sage) 30%, var(--color-canvas));
+  background: var(--color-accent-sage-soft);
   color: var(--color-primary-strong);
   font-size: 12px;
   font-weight: 500;

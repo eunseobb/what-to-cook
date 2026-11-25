@@ -9,6 +9,7 @@
   --color-canvas: #fffaf0;
   --color-surface-soft: #faf5e8;
   --color-surface-card: #f5f0e0;
+  --color-surface-input: #ffffff;
   --color-surface-dark: #0a1a1a;
   --color-hairline: #e5e5e5;
   --color-text-primary: #0a0a0a;
@@ -20,6 +21,7 @@
   --color-accent-navy: #24506b;
   --color-accent-plum: #49274f;
   --color-accent-sage: #c8d1a6;
+  --color-accent-sage-soft: #eef1e1; /* 카드 대표 태그, 재료 칩 배경 */
   --color-accent-gray: #c8c8cc;
   /* 오류·경고: danger 글씨는 canvas·danger-soft 위에서 대비 4.5:1 이상 */
   --color-danger: #a64b42;
