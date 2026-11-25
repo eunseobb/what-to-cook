@@ -14,7 +14,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Modifying;
 
-public interface RecipeRepository extends JpaRepository<Recipe, Long> {
+public interface RecipeRepository extends JpaRepository<Recipe, Long>, RecipeRepositoryCustom {
 
     Optional<Recipe> findByIdAndStatus(Long id, RecipeStatus status);
 
@@ -22,9 +22,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select r from Recipe r where r.id = :id")
     Optional<Recipe> findByIdForUpdate(@Param("id") Long id);
-
-    /** 커서(id) 기반 최신순 목록. id 내림차순이라 PK 인덱스로 범위 조회한다. */
-    List<Recipe> findByStatusAndIdLessThanOrderByIdDesc(RecipeStatus status, Long cursorId, Limit limit);
 
     /** 마이페이지 내 레시피. 작성자를 함께 가져와 목록 응답에서 추가 조회가 없다. */
     @EntityGraph(attributePaths = "author")

@@ -12,6 +12,10 @@ import com.whattocook.global.security.JwtTokenProvider;
 import com.whattocook.ingredient.domain.Ingredient;
 import com.whattocook.ingredient.domain.IngredientCategory;
 import com.whattocook.ingredient.repository.IngredientRepository;
+import com.whattocook.recipe.domain.Difficulty;
+import com.whattocook.recipe.domain.Recipe;
+import com.whattocook.recipe.domain.RecipeSource;
+import com.whattocook.recipe.domain.Tag;
 import com.whattocook.recipe.repository.RecipeRepository;
 import com.whattocook.recipe.repository.TagRepository;
 import com.whattocook.support.TestcontainersConfiguration;
@@ -157,6 +161,52 @@ class RecipeIntegrationTest {
         mockMvc.perform(get("/api/recipes").param("size", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("C001"));
+    }
+
+    @Test
+    @DisplayName("태그·기간·인기순으로 목록을 거르고, 복합 커서로 다음 페이지를 이어 받으며, 숨김 레시피는 뺀다")
+    void listWithFilterAndPopularSort() throws Exception {
+        Tag tag = tagRepository.findAll().get(0);
+        Recipe less = recipeRepository.save(listed("덜 인기", 2, tag));
+        Recipe more = recipeRepository.save(listed("더 인기", 5, tag));
+        recipeRepository.save(listed("태그 없음", 9, null));
+        Recipe hidden = listed("숨김", 100, tag);
+        hidden.hide();
+        recipeRepository.save(hidden);
+
+        String first = mockMvc.perform(get("/api/recipes").param("tag", tag.getId().toString())
+                        .param("sort", "POPULAR").param("days", "7").param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].id").value(more.getId()))
+                .andExpect(jsonPath("$.hasNext").value(true))
+                .andReturn().getResponse().getContentAsString();
+        String cursor = objectMapper.readTree(first).get("nextCursor").asText();
+
+        mockMvc.perform(get("/api/recipes").param("tag", tag.getId().toString())
+                        .param("sort", "POPULAR").param("days", "7").param("size", "1").param("cursor", cursor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].id").value(less.getId()))
+                .andExpect(jsonPath("$.hasNext").value(false));
+
+        mockMvc.perform(get("/api/recipes").param("sort", "POPULAR").param("cursor", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("C001"));
+        mockMvc.perform(get("/api/recipes").param("days", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("C001"));
+        mockMvc.perform(get("/api/recipes").param("sort", "RANDOM"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("C002"));
+    }
+
+    private Recipe listed(String title, int likeCount, Tag tag) {
+        Recipe recipe = Recipe.builder().author(author).source(RecipeSource.COMMUNITY).title(title)
+                .difficulty(Difficulty.EASY).cookTimeMinutes(10).servings(1)
+                .tags(tag == null ? List.of() : List.of(tag)).build();
+        for (int i = 0; i < likeCount; i++) {
+            recipe.increaseLikeCount();
+        }
+        return recipe;
     }
 
     private static MockHttpServletRequestBuilder json(MockHttpServletRequestBuilder builder, String body) {

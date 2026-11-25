@@ -17,16 +17,19 @@ import com.whattocook.recipe.dto.RecipeIngredientRequest;
 import com.whattocook.recipe.dto.RecipeStepRequest;
 import com.whattocook.recipe.dto.RecipeSummaryResponse;
 import com.whattocook.recipe.dto.RecipeUpdateRequest;
+import com.whattocook.recipe.domain.RecipeSort;
+import com.whattocook.recipe.repository.RecipeCursor;
+import com.whattocook.recipe.repository.RecipeListCondition;
 import com.whattocook.recipe.repository.RecipeRepository;
 import com.whattocook.recipe.repository.TagRepository;
 import com.whattocook.user.repository.UserRepository;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,12 +93,20 @@ public class RecipeService {
         return RecipeDetailResponse.from(findPublished(recipeId));
     }
 
-    /** @param cursor 이전 페이지의 nextCursor(마지막 레시피 id). 첫 페이지는 null. */
-    public CursorPageResponse<RecipeSummaryResponse> list(Long cursor, int size) {
-        List<RecipeSummaryResponse> fetched = recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
-                        RecipeStatus.PUBLISHED, cursor == null ? Long.MAX_VALUE : cursor, Limit.of(size + 1))
+    /**
+     * @param tagIds 모두 가진 레시피만 조회. 비어 있으면 필터 없음
+     * @param days   최근 N일 안에 작성된 레시피만. null이면 기간 제한 없음
+     * @param cursor 이전 페이지의 nextCursor. 첫 페이지는 null. 형식은 정렬마다 다르다({@link RecipeCursor}).
+     */
+    public CursorPageResponse<RecipeSummaryResponse> list(List<Long> tagIds, RecipeSort sort, Integer days,
+                                                          String cursor, int size) {
+        RecipeListCondition condition = new RecipeListCondition(tagIds, sort,
+                days == null ? null : LocalDateTime.now().minusDays(days));
+        List<RecipeSummaryResponse> fetched = recipeRepository.search(
+                        condition, RecipeCursor.decode(cursor, condition.sort()), size + 1)
                 .stream().map(RecipeSummaryResponse::from).toList();
-        return CursorPageResponse.of(fetched, size, r -> String.valueOf(r.id()));
+        return CursorPageResponse.of(fetched, size,
+                r -> new RecipeCursor(r.likeCount(), r.createdAt(), r.id()).encode(condition.sort()));
     }
 
     @Transactional
