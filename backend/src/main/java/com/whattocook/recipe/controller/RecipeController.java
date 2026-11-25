@@ -1,6 +1,7 @@
 package com.whattocook.recipe.controller;
 
 import com.whattocook.global.common.CursorPageResponse;
+import com.whattocook.recipe.domain.RecipeSort;
 import com.whattocook.recipe.dto.RecipeCreateRequest;
 import com.whattocook.recipe.dto.RecipeCreateResponse;
 import com.whattocook.recipe.dto.RecipeDetailResponse;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,7 +46,7 @@ public class RecipeController {
     public CursorPageResponse<RecipeSummaryResponse> list(
             @Parameter(description = "이전 페이지의 nextCursor") @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
-        return recipeService.list(cursor, size);
+        return recipeService.list(List.of(), RecipeSort.LATEST, null, cursor == null ? null : cursor.toString(), size);
     }
 
     @Operation(summary = "레시피 상세")

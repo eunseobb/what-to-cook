@@ -28,11 +28,15 @@ import com.whattocook.recipe.dto.RecipeIngredientRequest;
 import com.whattocook.recipe.dto.RecipeStepRequest;
 import com.whattocook.recipe.dto.RecipeSummaryResponse;
 import com.whattocook.recipe.dto.RecipeUpdateRequest;
+import com.whattocook.recipe.domain.RecipeSort;
+import com.whattocook.recipe.repository.RecipeCursor;
+import com.whattocook.recipe.repository.RecipeListCondition;
 import com.whattocook.recipe.repository.RecipeRepository;
 import com.whattocook.recipe.repository.TagRepository;
 import com.whattocook.user.domain.User;
 import com.whattocook.user.repository.UserRepository;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +46,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Limit;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -177,16 +180,47 @@ class RecipeServiceTest {
     @Test
     @DisplayName("목록은 size + 1건을 조회해 다음 커서를 만든다")
     void list() {
-        given(recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
-                RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(3)))
+        given(recipeRepository.search(new RecipeListCondition(List.of(), RecipeSort.LATEST, null), null, 3))
                 .willReturn(List.of(recipe(9L), recipe(8L), recipe(7L)));
 
-        CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(null, 2);
+        CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(null, null, null, null, 2);
 
         assertThat(page.items()).extracting(RecipeSummaryResponse::id).containsExactly(9L, 8L);
         assertThat(page.items().get(0).authorNickname()).isEqualTo("요리사");
         assertThat(page.hasNext()).isTrue();
         assertThat(page.nextCursor()).isEqualTo("8");
+    }
+
+    @Test
+    @DisplayName("인기순은 커서를 (좋아요 수, 작성 시각, id)로 풀고, 다음 커서도 같은 형식으로 만든다")
+    void listPopular() {
+        LocalDateTime createdAt = LocalDateTime.of(2026, 11, 20, 9, 30, 15, 123_000);
+        Recipe top = recipe(9L);
+        Recipe next = recipe(8L);
+        ReflectionTestUtils.setField(next, "likeCount", 4);
+        ReflectionTestUtils.setField(next, "createdAt", createdAt);
+        ArgumentCaptor<RecipeListCondition> condition = ArgumentCaptor.forClass(RecipeListCondition.class);
+        given(recipeRepository.search(condition.capture(), eq(new RecipeCursor(7, createdAt, 10L)), eq(3)))
+                .willReturn(List.of(top, next, recipe(7L)));
+
+        CursorPageResponse<RecipeSummaryResponse> page = recipeService.list(
+                List.of(100L, 100L), RecipeSort.POPULAR, 7, "7_" + createdAt + "_10", 2);
+
+        assertThat(page.nextCursor()).isEqualTo("4_2026-11-20T09:30:15.000123_8");
+        assertThat(condition.getValue().tagIds()).containsExactly(100L);
+        assertThat(condition.getValue().createdAfter())
+                .isBetween(LocalDateTime.now().minusDays(7).minusMinutes(1), LocalDateTime.now().minusDays(7));
+    }
+
+    @Test
+    @DisplayName("정렬과 맞지 않거나 깨진 커서는 잘못된 입력으로 거절한다")
+    void listInvalidCursor() {
+        assertThatThrownBy(() -> recipeService.list(null, RecipeSort.POPULAR, null, "8", 2))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
+        assertThatThrownBy(() -> recipeService.list(null, RecipeSort.LATEST, null, "4_x_8", 2))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode").isEqualTo(ErrorCode.INVALID_INPUT_VALUE);
     }
 
     @Test

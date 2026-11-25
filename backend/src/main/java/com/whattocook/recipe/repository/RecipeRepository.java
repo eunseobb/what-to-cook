@@ -23,9 +23,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, RecipeRep
     @Query("select r from Recipe r where r.id = :id")
     Optional<Recipe> findByIdForUpdate(@Param("id") Long id);
 
-    /** 커서(id) 기반 최신순 목록. id 내림차순이라 PK 인덱스로 범위 조회한다. */
-    List<Recipe> findByStatusAndIdLessThanOrderByIdDesc(RecipeStatus status, Long cursorId, Limit limit);
-
     /** 마이페이지 내 레시피. 작성자를 함께 가져와 목록 응답에서 추가 조회가 없다. */
     @EntityGraph(attributePaths = "author")
     List<Recipe> findByAuthorIdAndStatusAndIdLessThanOrderByIdDesc(Long authorId, RecipeStatus status, Long cursorId,

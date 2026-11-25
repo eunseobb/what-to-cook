@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Limit;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -113,11 +112,10 @@ class RecipeRepositoryTest {
         deleted.delete();
         recipeRepository.flush();
 
-        assertThat(recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
-                RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(2)))
+        RecipeListCondition latest = new RecipeListCondition(List.of(), RecipeSort.LATEST, null);
+        assertThat(recipeRepository.search(latest, null, 2))
                 .extracting(Recipe::getId).containsExactly(fourth.getId(), third.getId());
-        assertThat(recipeRepository.findByStatusAndIdLessThanOrderByIdDesc(
-                RecipeStatus.PUBLISHED, third.getId(), Limit.of(2)))
+        assertThat(recipeRepository.search(latest, new RecipeCursor(0, null, third.getId()), 2))
                 .extracting(Recipe::getId).containsExactly(first.getId());
         assertThat(recipeRepository.findByIdAndStatus(deleted.getId(), RecipeStatus.PUBLISHED)).isEmpty();
     }
