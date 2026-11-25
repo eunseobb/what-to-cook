@@ -3,6 +3,7 @@ package com.whattocook.ai.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whattocook.ai.dto.AiRecipeJobStatus;
+import com.whattocook.global.error.ErrorCode;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,7 +53,16 @@ public class AiRecipeJobStore {
     /**
      * @param userId    요청한 사용자. 다른 사용자는 조회할 수 없다.
      * @param recipeIds 완료 시 결과 레시피 id
+     * @param errorCode 실패 시 원인. 그 밖에는 null
      */
-    public record Job(Long userId, AiRecipeJobStatus status, List<Long> recipeIds) {
+    public record Job(Long userId, AiRecipeJobStatus status, List<Long> recipeIds, ErrorCode errorCode) {
+
+        public Job(Long userId, AiRecipeJobStatus status, List<Long> recipeIds) {
+            this(userId, status, recipeIds, null);
+        }
+
+        public static Job failed(Long userId, ErrorCode errorCode) {
+            return new Job(userId, AiRecipeJobStatus.FAILED, List.of(), errorCode);
+        }
     }
 }

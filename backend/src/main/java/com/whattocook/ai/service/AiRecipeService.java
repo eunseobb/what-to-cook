@@ -44,11 +44,12 @@ public class AiRecipeService {
     private final AiRecipeClient aiRecipeClient;
     private final AiRecipeDraftValidator draftValidator;
     private final AiRecipeJobStore jobStore;
+    private final AiRateLimiter rateLimiter;
     private final Executor executor;
 
     public AiRecipeService(IngredientNormalizationService normalizationService, RecipeRepository recipeRepository,
                            UserExcludedIngredientRepository excludedIngredientRepository, AiRecipeClient aiRecipeClient,
-                           AiRecipeDraftValidator draftValidator, AiRecipeJobStore jobStore,
+                           AiRecipeDraftValidator draftValidator, AiRecipeJobStore jobStore, AiRateLimiter rateLimiter,
                            @Qualifier(AiRecipeExecutorConfig.EXECUTOR) Executor executor) {
         this.normalizationService = normalizationService;
         this.recipeRepository = recipeRepository;
@@ -56,6 +57,7 @@ public class AiRecipeService {
         this.aiRecipeClient = aiRecipeClient;
         this.draftValidator = draftValidator;
         this.jobStore = jobStore;
+        this.rateLimiter = rateLimiter;
         this.executor = executor;
     }
 
@@ -74,27 +76,36 @@ public class AiRecipeService {
             return completed(jobId, userId, reused);
         }
 
+        // 실제로 LLM을 부르는 캐시 미스만 센다.
+        if (!rateLimiter.tryAcquire(userId)) {
+            throw new BusinessException(ErrorCode.AI_RATE_LIMITED);
+        }
         UUID jobId = jobStore.create(new Job(userId, AiRecipeJobStatus.PENDING, List.of()));
         try {
             executor.execute(() -> generate(jobId, userId, owned, hash));
         } catch (RejectedExecutionException e) {
-            jobStore.save(jobId, new Job(userId, AiRecipeJobStatus.FAILED, List.of()));
+            jobStore.save(jobId, Job.failed(userId, ErrorCode.TOO_MANY_REQUESTS));
             throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS);
         }
-        return new AiRecommendationResponse(jobId, AiRecipeJobStatus.PENDING, null);
+        return AiRecommendationResponse.pending(jobId);
     }
 
     public AiRecommendationResponse getJob(Long userId, UUID jobId) {
         Job job = jobStore.find(jobId).filter(j -> j.userId().equals(userId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.AI_JOB_NOT_FOUND));
-        if (job.status() != AiRecipeJobStatus.COMPLETED) {
-            return new AiRecommendationResponse(jobId, job.status(), null);
+        if (job.status() == AiRecipeJobStatus.PENDING) {
+            return AiRecommendationResponse.pending(jobId);
+        }
+        if (job.status() == AiRecipeJobStatus.FAILED) {
+            // 이전 버전이 남긴 errorCode 없는 작업은 일반 실패로 본다.
+            return AiRecommendationResponse.failed(jobId,
+                    job.errorCode() == null ? ErrorCode.AI_GENERATION_FAILED : job.errorCode());
         }
         return completed(jobId, userId, recipeRepository.findAllById(job.recipeIds()));
     }
 
     /**
-     * 전용 스레드 풀에서 실행한다. 실패해도 예외를 밖으로 던지지 않고 작업을 FAILED로 남긴다.
+     * 전용 스레드 풀에서 실행한다. 실패해도 예외를 밖으로 던지지 않고 작업을 원인 코드와 함께 FAILED로 남긴다.
      * shortcut: 같은 재료 집합을 동시에 요청하면 둘 다 생성해 같은 해시 레시피가 늘어난다, 비용이 문제되면 해시 단위 Redis 락으로 합친다.
      */
     void generate(UUID jobId, Long userId, List<Ingredient> owned, String hash) {
@@ -102,10 +113,14 @@ public class AiRecipeService {
             List<AiRecipeDraft> drafts = aiRecipeClient.generate(owned.stream().map(Ingredient::getName).toList());
             List<Recipe> recipes = draftValidator.toRecipes(drafts, owned.stream().map(Ingredient::getId).toList(), hash);
             List<Long> ids = recipeRepository.saveAll(recipes).stream().map(Recipe::getId).toList();
-            jobStore.save(jobId, new Job(userId, ids.isEmpty() ? AiRecipeJobStatus.FAILED : AiRecipeJobStatus.COMPLETED, ids));
+            jobStore.save(jobId, ids.isEmpty() ? Job.failed(userId, ErrorCode.AI_GENERATION_FAILED)
+                    : new Job(userId, AiRecipeJobStatus.COMPLETED, ids));
+        } catch (BusinessException e) {
+            log.warn("AI 레시피 생성 실패: jobId={}, code={}", jobId, e.getErrorCode().getCode(), e);
+            jobStore.save(jobId, Job.failed(userId, e.getErrorCode()));
         } catch (RuntimeException e) {
             log.warn("AI 레시피 생성 실패: jobId={}", jobId, e);
-            jobStore.save(jobId, new Job(userId, AiRecipeJobStatus.FAILED, List.of()));
+            jobStore.save(jobId, Job.failed(userId, ErrorCode.AI_GENERATION_FAILED));
         }
     }
 
@@ -120,6 +135,6 @@ public class AiRecipeService {
                 .sorted(Comparator.comparing(Recipe::getId))
                 .map(RecipeDetailResponse::from)
                 .toList();
-        return new AiRecommendationResponse(jobId, AiRecipeJobStatus.COMPLETED, visible);
+        return AiRecommendationResponse.completed(jobId, visible);
     }
 }
