@@ -9,7 +9,8 @@ const TABS = [
   { to: '/mypage', label: '마이페이지', icon: '◯' },
 ]
 
-export default function AppLayout() {
+// hideTabBar: 로그인·회원가입처럼 모바일에서 하단 탭바 없는 전체 화면
+export default function AppLayout({ hideTabBar = false }: { hideTabBar?: boolean }) {
   return (
     <>
       <header className="app-header">
@@ -34,16 +35,18 @@ export default function AppLayout() {
       <main>
         <Outlet />
       </main>
-      <nav className="tab-bar" aria-label="하단 탭">
-        {TABS.map(({ to, label, icon }) => (
-          <NavLink key={to} to={to} end={to === '/'} className="tab-bar__item">
-            <span className="tab-bar__icon" aria-hidden="true">
-              {icon}
-            </span>
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      {!hideTabBar && (
+        <nav className="tab-bar" aria-label="하단 탭">
+          {TABS.map(({ to, label, icon }) => (
+            <NavLink key={to} to={to} end={to === '/'} className="tab-bar__item">
+              <span className="tab-bar__icon" aria-hidden="true">
+                {icon}
+              </span>
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </>
   )
 }
