@@ -140,6 +140,8 @@ class RecipeRepositoryTest {
     void seededTags() {
         assertThat(tagRepository.findAll()).extracting(Tag::getType)
                 .contains(TagType.CUISINE, TagType.TASTE, TagType.PURPOSE, TagType.DIFFICULTY);
+        assertThat(tagRepository.findAll()).extracting(Tag::getColorKey).doesNotContainNull()
+                .contains("accent-sage", "accent-navy");
     }
 
     private Recipe aiRecipe(String title, String hash) {
