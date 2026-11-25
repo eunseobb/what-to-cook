@@ -130,7 +130,7 @@ class OnboardingServiceTest {
 
         OnboardingResponse response = onboardingService.get(1L);
 
-        assertThat(response.preferenceTags()).containsExactly(new TagResponse(100L, TagType.CUISINE, "한식"));
+        assertThat(response.preferenceTags()).containsExactly(new TagResponse(100L, TagType.CUISINE, "한식", "accent-sage"));
         assertThat(response.allergyIngredients()).containsExactly(new OnboardingResponse.IngredientItem(10L, "땅콩"));
         assertThat(response.dislikeIngredients()).containsExactly(new OnboardingResponse.IngredientItem(11L, "오이"));
     }
