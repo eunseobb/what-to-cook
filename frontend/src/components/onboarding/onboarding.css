@@ -1,0 +1,321 @@
+/* 시안: 앱 헤더 대신 로고·단계·진행 막대만 있는 상단 바, 본문 폭 640px 가운데 */
+.onboarding__top-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-1);
+}
+
+.onboarding__top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.onboarding__logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary-strong);
+}
+
+.onboarding__step {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.onboarding__progress {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+
+.onboarding__progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+
+.onboarding__progress-fill--step1 {
+  width: 50%;
+}
+
+.onboarding__progress-fill--step2 {
+  width: 100%;
+}
+
+.onboarding__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 640px;
+  margin: calc(var(--space-12) + var(--space-2)) auto 0;
+}
+
+.onboarding__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.onboarding__title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.onboarding__desc {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color-text-muted);
+}
+
+.onboarding__group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.onboarding__group-title {
+  margin-bottom: var(--space-3);
+  padding: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-body);
+}
+
+.onboarding__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* 시안의 선택 칩 색은 루트 §9 규칙(선택된 필터 = 주 색상)에 맞춰, 작은 글씨라 strong 색을 쓴다 */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-text-body);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.tag-chip--selected {
+  border: 1.5px solid var(--color-primary-strong);
+  background: var(--color-accent-sage-soft);
+  color: var(--color-primary-strong);
+  font-weight: 700;
+}
+
+.onboarding__error {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 14px;
+}
+
+.onboarding__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+}
+
+.onboarding__count {
+  margin: 0 auto 0 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.onboarding__skip {
+  margin-right: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.onboarding__secondary,
+.onboarding__primary {
+  height: 52px;
+  border-radius: var(--radius-control);
+  font: inherit;
+  cursor: pointer;
+}
+
+.onboarding__secondary {
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-accent-navy);
+  background: none;
+  color: var(--color-accent-navy);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.onboarding__primary {
+  padding: 0 var(--space-10);
+  border: 0;
+  background: var(--color-primary);
+  color: var(--color-canvas);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.onboarding__primary:hover {
+  background: var(--color-primary-strong);
+}
+
+.onboarding__primary:disabled {
+  background: var(--color-accent-gray);
+  cursor: default;
+}
+
+/* 재료 입력 (알레르기·비선호) */
+.ingredient-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ingredient-picker__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ingredient-picker__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-body);
+}
+
+.ingredient-picker__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted-soft);
+}
+
+.ingredient-picker__input {
+  height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 16px;
+}
+
+.ingredient-picker__input::placeholder {
+  color: var(--color-text-muted-soft);
+}
+
+.ingredient-picker__input:focus {
+  border: 1.5px solid var(--color-primary-strong);
+  outline: none;
+}
+
+.ingredient-picker__list {
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+}
+
+.ingredient-picker__option {
+  padding: 10px var(--space-4);
+  font-size: 15px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.ingredient-picker__option[aria-selected='true'] {
+  background: var(--color-surface-soft);
+}
+
+.ingredient-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ingredient-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 6px var(--space-3);
+  border-radius: var(--radius-control);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.ingredient-chip--allergy {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.ingredient-chip--dislike {
+  background: var(--color-accent-sage);
+  color: var(--color-text-primary);
+}
+
+.ingredient-chip__remove {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ingredient-chip--dislike .ingredient-chip__remove {
+  color: var(--color-text-body);
+}
+
+.tag-chip:focus-visible,
+.onboarding__skip:focus-visible,
+.onboarding__secondary:focus-visible,
+.onboarding__primary:focus-visible,
+.ingredient-chip__remove:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+/* 모바일: 좌우 24px(main 패딩 16px + 8px), 버튼 좌우 여백을 줄인다 */
+@media (max-aspect-ratio: 3/4) {
+  .onboarding {
+    padding-left: max(var(--space-6), env(safe-area-inset-left));
+    padding-right: max(var(--space-6), env(safe-area-inset-right));
+  }
+
+  .onboarding__content {
+    gap: 28px;
+    margin-top: var(--space-6);
+  }
+
+  .onboarding__primary {
+    padding: 0 var(--space-6);
+  }
+}
