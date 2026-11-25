@@ -19,6 +19,7 @@ import com.whattocook.recipe.domain.RecipeSource;
 import com.whattocook.recipe.domain.Tag;
 import com.whattocook.recipe.domain.TagType;
 import com.whattocook.recipe.repository.RecipeRepository;
+import com.whattocook.recommendation.dto.RecommendationQuery;
 import com.whattocook.recommendation.dto.RecommendationRequest;
 import com.whattocook.recommendation.dto.RecommendedRecipeResponse;
 import com.whattocook.recommendation.repository.RecommendationRepository;
@@ -103,6 +104,21 @@ class RecommendationServiceTest {
         assertThat(page.items()).isEmpty();
         assertThat(page.hasNext()).isFalse();
         verify(recommendationRepository, never()).findMatchCandidates(any(), any(), any(), anyInt(), anyInt());
+    }
+
+    @Test
+    @DisplayName("쿼리스트링 추천은 재료 ID를 정규화 없이 쓰고, 중복 재료·태그를 합쳐 같은 점수로 정렬한다")
+    void recommendByQuery() {
+        given(recommendationRepository.findMatchCandidates(1L, List.of(10L), List.of(100L), 1, 200)).willReturn(List.of(
+                new Candidate(1L, 1, 2), new Candidate(2L, 2, 2)));
+        given(recipeRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(
+                recipe(1L, 0, List.of(korean)), recipe(2L, 0, List.of(korean))));
+
+        CursorPageResponse<RecommendedRecipeResponse> page = recommendationService.recommend(1L,
+                new RecommendationQuery(List.of(10L, 10L), List.of(100L, 100L), null, null));
+
+        assertThat(page.items()).extracting(r -> r.recipe().id()).containsExactly(2L, 1L);
+        verify(normalizationService, never()).normalize(any());
     }
 
     private void givenCandidates() {

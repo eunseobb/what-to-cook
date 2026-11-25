@@ -6,6 +6,7 @@ import com.whattocook.ingredient.service.IngredientNormalizationService;
 import com.whattocook.recipe.domain.Recipe;
 import com.whattocook.recipe.dto.RecipeSummaryResponse;
 import com.whattocook.recipe.repository.RecipeRepository;
+import com.whattocook.recommendation.dto.RecommendationQuery;
 import com.whattocook.recommendation.dto.RecommendationRequest;
 import com.whattocook.recommendation.dto.RecommendedRecipeResponse;
 import com.whattocook.recommendation.repository.RecommendationRepository;
@@ -40,8 +41,21 @@ public class RecommendationService {
     public CursorPageResponse<RecommendedRecipeResponse> recommend(Long userId, RecommendationRequest request) {
         List<Long> ownedIds = normalizationService.normalize(request.ingredients()).matched().stream()
                 .map(Ingredient::getId).toList();
+        return rank(userId, ownedIds, List.of(), request.cursor(), request.size());
+    }
+
+    /** 쿼리스트링 추천. 재료가 이미 표준 재료 ID라 정규화 없이 POST와 같은 점수·필터를 쓴다. */
+    public CursorPageResponse<RecommendedRecipeResponse> recommend(Long userId, RecommendationQuery query) {
+        return rank(userId, query.ingredient().stream().distinct().toList(),
+                query.tag().stream().distinct().toList(), query.cursor(), query.size());
+    }
+
+    /** @param tagIds 중복 없는 필터 태그 ID. 모두 가진 레시피만 남긴다 */
+    private CursorPageResponse<RecommendedRecipeResponse> rank(Long userId, List<Long> ownedIds, List<Long> tagIds,
+                                                              String cursor, int size) {
         List<MatchCandidate> candidates = ownedIds.isEmpty() ? List.of()
-                : recommendationRepository.findMatchCandidates(userId, ownedIds, List.of(), 0, properties.candidateLimit());
+                : recommendationRepository.findMatchCandidates(userId, ownedIds, tagIds, tagIds.size(),
+                        properties.candidateLimit());
         if (candidates.isEmpty()) {
             return new CursorPageResponse<>(List.of(), null, false);
         }
@@ -76,8 +90,7 @@ public class RecommendationService {
                 .toList();
 
         // shortcut: 커서는 순위 오프셋이라 페이지 사이에 점수가 바뀌면 중복·누락이 날 수 있다. 결과를 캐시할 때 스냅샷 키로 바꾼다.
-        int offset = request.cursor() == null ? 0 : Integer.parseInt(request.cursor());
-        int size = request.size();
+        int offset = cursor == null ? 0 : Integer.parseInt(cursor);
         List<RecommendedRecipeResponse> fetched = ranked.subList(Math.min(offset, ranked.size()),
                 Math.min(offset + size + 1, ranked.size()));
         return CursorPageResponse.of(fetched, size, last -> String.valueOf(offset + size));
