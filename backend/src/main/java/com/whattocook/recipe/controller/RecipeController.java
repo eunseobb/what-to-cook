@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,13 +41,22 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
-    @Operation(summary = "레시피 목록", description = "최신순 커서 페이지네이션. 다음 페이지는 응답의 nextCursor를 cursor로 보낸다.")
+    @Operation(summary = "레시피 목록", description = """
+            태그·기간 필터와 정렬을 고른 커서 페이지네이션. 숨김·삭제된 레시피는 빠진다.
+            다음 페이지는 같은 조건에 응답의 nextCursor를 cursor로 보낸다. 커서 형식은 정렬마다 다르다.
+            예: 둘러보기 탭 `?sort=POPULAR&days=7`""")
     @SecurityRequirements
     @GetMapping
     public CursorPageResponse<RecipeSummaryResponse> list(
-            @Parameter(description = "이전 페이지의 nextCursor") @RequestParam(required = false) Long cursor,
+            @Parameter(description = "태그 id. 여러 개면 모두 가진 레시피만 (tag=1&tag=13)")
+            @RequestParam(name = "tag", required = false) @Size(max = 10) List<Long> tagIds,
+            @Parameter(description = "정렬: LATEST(최신순, 기본), POPULAR(좋아요 수)")
+            @RequestParam(defaultValue = "LATEST") RecipeSort sort,
+            @Parameter(description = "최근 N일 안에 작성된 레시피만 (생략 시 전체 기간)")
+            @RequestParam(required = false) @Min(1) @Max(365) Integer days,
+            @Parameter(description = "이전 페이지의 nextCursor") @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
-        return recipeService.list(List.of(), RecipeSort.LATEST, null, cursor == null ? null : cursor.toString(), size);
+        return recipeService.list(tagIds, sort, days, cursor, size);
     }
 
     @Operation(summary = "레시피 상세")
