@@ -174,11 +174,14 @@
 | `--color-accent-plum` | `#49274f` | 보조: AI 생성 배지 |
 | `--color-accent-sage` | `#c8d1a6` | 보조: 태그 칩 배경, 선택 영역 |
 | `--color-accent-gray` | `#c8c8cc` | 보조: 비활성, 구분선, 플레이스홀더 |
+| `--color-danger` | `#a64b42` | 오류·경고 글씨, 테두리 (톤다운된 빨간 계열) |
+| `--color-danger-soft` | `#f9e9e4` | 오류·경고 메시지 배경 |
 
 - 접근성: 흰 글씨를 `#729103` 위에 쓸 때 대비가 약 3.6:1이라 **18.66px 이상 굵은 글씨(버튼 라벨 등)에만** 쓴다. 작은 글씨나 cream 배경 위 녹색 텍스트는 `--color-primary-strong`을 쓴다. 본문 대비는 4.5:1 이상.
 - 다크모드: 지원 예정. 처음부터 `[data-theme="dark"]`에서 같은 토큰 이름을 재정의하는 구조로 만들고, 다크 값은 별도로 정한다.
 - 폰트: **Pretendard**(가변 폰트, 서브셋). `font-family: "Pretendard Variable", Pretendard, -apple-system, sans-serif`
-- 간격은 4px 배수, 모서리는 둥근 직사각형(카드·검색창·칩 공통 radius 토큰 사용).
+- 간격은 4px 배수, 모서리는 둥근 직사각형. radius는 확정 시안 값을 토큰으로 쓴다: `--radius-card` 16px(카드 썸네일), `--radius-search` 18px(재료 검색창), `--radius-control` 12px(필터 칩·버튼·입력창), `--radius-tag` 6px(카드 안 대표 태그), `--radius-pill` 999px(배지).
+- `--color-danger` 글씨는 canvas·`--color-danger-soft` 배경 위에서 대비 4.5:1 이상이다.
 
 ### 레이아웃
 - 메인 화면 순서: 재료 검색창 → 태그 필터 칩 → 섹션 목록(**인기 → 내 취향 추천 → AI → 새 레시피**), 각 섹션은 제목 + "전체 보기" 링크.
