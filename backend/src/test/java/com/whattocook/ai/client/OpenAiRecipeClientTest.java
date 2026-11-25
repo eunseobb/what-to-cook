@@ -35,7 +35,7 @@ import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.ai.retry.TransientAiException;
 
 /** 실제 OpenAI 대신 ChatModel을 Mock으로 두고 요청 형식·응답 변환과 장애 대응(타임아웃·재시도·서킷 브레이커)을 확인한다. */
-class AiRecipeClientTest {
+class OpenAiRecipeClientTest {
 
     private static final String JSON = """
             {"recipes":[{"title":"달걀볶음밥","difficulty":"EASY","cookTimeMinutes":15,"servings":1,
@@ -43,11 +43,11 @@ class AiRecipeClientTest {
             """;
 
     private final ChatModel chatModel = mock(ChatModel.class);
-    private final AiRecipeClient client = client(chatModel);
+    private final OpenAiRecipeClient client = client(chatModel);
 
     /** application.yml의 openai 인스턴스와 같은 규칙에 대기 시간·창 크기만 줄였다. */
-    private static AiRecipeClient client(ChatModel chatModel) {
-        return new AiRecipeClient(ChatClient.builder(chatModel),
+    private static OpenAiRecipeClient client(ChatModel chatModel) {
+        return new OpenAiRecipeClient(ChatClient.builder(chatModel),
                 RetryRegistry.of(RetryConfig.custom().maxAttempts(3).waitDuration(Duration.ofMillis(1))
                         .retryExceptions(TransientAiException.class).build()),
                 TimeLimiterRegistry.of(TimeLimiterConfig.custom().timeoutDuration(Duration.ofMillis(200)).build()),
@@ -99,7 +99,7 @@ class AiRecipeClientTest {
 
         ChatModel badRequest = mock(ChatModel.class);
         given(badRequest.call(any(Prompt.class))).willThrow(new NonTransientAiException("400"));
-        AiRecipeClient other = client(badRequest);
+        OpenAiRecipeClient other = client(badRequest);
         assertThatThrownBy(() -> other.generate(List.of("달걀"))).isInstanceOf(NonTransientAiException.class);
         verify(badRequest, times(1)).call(any(Prompt.class));
     }

@@ -22,6 +22,11 @@ spring:
     retry:
       max-attempts: 1      # Spring AI 자체 재시도는 끄고 Resilience4j(resilience4j.retry.openai) 한 곳에서만 재시도한다.
       on-http-codes: 429   # 429는 기본으로 비일시 오류라 일시 오류(TransientAiException)로 분류해 재시도 대상에 넣는다.
+    openai:
+      chat:
+        options:
+          # 모델은 코드 수정 없이 환경변수로 바꾼다. JSON Schema(Structured Output)를 지원하는 모델이어야 한다.
+          model: ${OPENAI_MODEL:gpt-4o-mini}
 
   jackson:
     time-zone: Asia/Seoul
