@@ -42,13 +42,4 @@ public class MyPageController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
         return myPageService.bookmarks(userId, cursor, size);
     }
-
-    @Operation(summary = "좋아요한 레시피", description = "좋아요한 순서 최신순. 숨김·삭제된 레시피는 빠진다.")
-    @GetMapping("/likes")
-    public CursorPageResponse<RecipeSummaryResponse> likes(
-            @AuthenticationPrincipal Long userId,
-            @Parameter(description = "이전 페이지의 nextCursor") @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "20") @Min(1) @Max(50) int size) {
-        return myPageService.likes(userId, cursor, size);
-    }
 }

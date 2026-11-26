@@ -6,9 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.withSettings;
 
 import com.whattocook.community.domain.RecipeBookmark;
-import com.whattocook.community.domain.RecipeLike;
 import com.whattocook.community.repository.RecipeBookmarkRepository;
-import com.whattocook.community.repository.RecipeLikeRepository;
 import com.whattocook.global.common.CursorPageResponse;
 import com.whattocook.recipe.domain.Recipe;
 import com.whattocook.recipe.domain.RecipeStatus;
@@ -31,8 +29,6 @@ class MyPageServiceTest {
     private RecipeRepository recipeRepository;
     @Mock
     private RecipeBookmarkRepository recipeBookmarkRepository;
-    @Mock
-    private RecipeLikeRepository recipeLikeRepository;
 
     @InjectMocks
     private MyPageService myPageService;
@@ -63,22 +59,6 @@ class MyPageServiceTest {
 
         assertThat(page.items()).extracting(RecipeSummaryResponse::id).containsExactly(100L);
         assertThat(page.nextCursor()).isEqualTo("9");
-    }
-
-    @Test
-    @DisplayName("좋아요 목록: 마지막 페이지면 다음 커서가 없다")
-    void likesLastPage() {
-        RecipeLike like = lenientMock(RecipeLike.class);
-        Recipe recipe = recipe(100L);
-        given(like.getRecipe()).willReturn(recipe);
-        given(recipeLikeRepository.findPageByUserId(1L, RecipeStatus.PUBLISHED, Long.MAX_VALUE, Limit.of(21)))
-                .willReturn(List.of(like));
-
-        CursorPageResponse<RecipeSummaryResponse> page = myPageService.likes(1L, null, 20);
-
-        assertThat(page.items()).extracting(RecipeSummaryResponse::id).containsExactly(100L);
-        assertThat(page.hasNext()).isFalse();
-        assertThat(page.nextCursor()).isNull();
     }
 
     private static Recipe recipe(Long id) {
