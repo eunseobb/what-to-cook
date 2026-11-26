@@ -22,3 +22,22 @@ api.use({
     return request
   },
 })
+
+/** 백엔드 ErrorResponse(code, message)를 담은 오류. status로 401·409 등을 구분한다. */
+export class ApiError extends Error {
+  readonly status: number
+  readonly code?: string
+
+  constructor(status: number, code: string | undefined, message: string) {
+    super(message)
+    this.status = status
+    this.code = code
+  }
+}
+
+/** openapi-fetch 결과가 실패면 ApiError를 던진다. */
+export function throwIfFailed(response: Response, error: unknown, fallback: string) {
+  if (response.ok) return
+  const body = error as { code?: string; message?: string } | undefined
+  throw new ApiError(response.status, body?.code, body?.message ?? fallback)
+}
