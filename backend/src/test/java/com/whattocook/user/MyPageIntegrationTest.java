@@ -6,9 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.whattocook.community.domain.RecipeBookmark;
-import com.whattocook.community.domain.RecipeLike;
 import com.whattocook.community.repository.RecipeBookmarkRepository;
-import com.whattocook.community.repository.RecipeLikeRepository;
 import com.whattocook.global.security.JwtTokenProvider;
 import com.whattocook.recipe.domain.Difficulty;
 import com.whattocook.recipe.domain.Recipe;
@@ -31,7 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * 마이페이지 세 목록을 실제 DB로 조회한다. 로그인 필요, 숨김 레시피 제외, 커서 이어 받기를 확인한다.
+ * 마이페이지 두 목록(내 레시피, 저장한 레시피)을 실제 DB로 조회한다. 로그인 필요, 숨김 레시피 제외, 커서 이어 받기를 확인한다.
  */
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
@@ -49,8 +47,6 @@ class MyPageIntegrationTest {
     private RecipeRepository recipeRepository;
     @Autowired
     private RecipeBookmarkRepository recipeBookmarkRepository;
-    @Autowired
-    private RecipeLikeRepository recipeLikeRepository;
 
     private User user;
     private Recipe first;
@@ -65,7 +61,6 @@ class MyPageIntegrationTest {
         latest = saveRecipe("최신");
         for (Recipe recipe : List.of(first, hidden, latest)) {
             recipeBookmarkRepository.save(new RecipeBookmark(user, recipe));
-            recipeLikeRepository.save(new RecipeLike(user, recipe));
         }
         hidden.hide();
         hidden = recipeRepository.save(hidden);
@@ -75,17 +70,14 @@ class MyPageIntegrationTest {
     void tearDown() {
         // 다른 통합 테스트와 같은 DB를 쓰므로 만든 데이터만 FK 순서대로 지운다.
         recipeBookmarkRepository.deleteAll();
-        for (Recipe recipe : List.of(first, hidden, latest)) {
-            recipeLikeRepository.deleteByUserIdAndRecipeId(user.getId(), recipe.getId());
-        }
         recipeRepository.deleteAll(List.of(first, hidden, latest));
         userRepository.delete(user);
     }
 
     @Test
-    @DisplayName("세 목록 모두 로그인이 필요하고, 숨김 레시피를 빼고 최신순으로 커서를 이어 받는다")
+    @DisplayName("두 목록 모두 로그인이 필요하고, 숨김 레시피를 빼고 최신순으로 커서를 이어 받는다")
     void lists() throws Exception {
-        for (String path : List.of("/api/me/recipes", "/api/me/bookmarks", "/api/me/likes")) {
+        for (String path : List.of("/api/me/recipes", "/api/me/bookmarks")) {
             mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
 
             String nextCursor = mockMvc.perform(get(path).param("size", "1")

@@ -1,9 +1,7 @@
 package com.whattocook.user.service;
 
 import com.whattocook.community.domain.RecipeBookmark;
-import com.whattocook.community.domain.RecipeLike;
 import com.whattocook.community.repository.RecipeBookmarkRepository;
-import com.whattocook.community.repository.RecipeLikeRepository;
 import com.whattocook.global.common.CursorPageResponse;
 import com.whattocook.recipe.domain.Recipe;
 import com.whattocook.recipe.domain.RecipeStatus;
@@ -18,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 마이페이지 목록. 게시 중인 레시피만 보여 주므로 숨김·삭제된 레시피는 빠진다.
- * 커서는 내 레시피는 레시피 id, 저장·좋아요는 저장·좋아요 행 id(=한 순서)다.
+ * 커서는 내 레시피는 레시피 id, 저장 목록은 저장 행 id(=저장한 순서)다.
+ * 좋아요는 목록으로 보여 주지 않고 취향 가중치(F3)에만 쓴다.
  */
 @Service
 @RequiredArgsConstructor
@@ -27,7 +26,6 @@ public class MyPageService {
 
     private final RecipeRepository recipeRepository;
     private final RecipeBookmarkRepository recipeBookmarkRepository;
-    private final RecipeLikeRepository recipeLikeRepository;
 
     public CursorPageResponse<RecipeSummaryResponse> myRecipes(Long userId, Long cursor, int size) {
         List<Recipe> fetched = recipeRepository.findByAuthorIdAndStatusAndIdLessThanOrderByIdDesc(
@@ -39,12 +37,6 @@ public class MyPageService {
         List<RecipeBookmark> fetched = recipeBookmarkRepository.findPageByUserId(
                 userId, RecipeStatus.PUBLISHED, orMax(cursor), Limit.of(size + 1));
         return toSummaryPage(fetched, size, RecipeBookmark::getId, RecipeBookmark::getRecipe);
-    }
-
-    public CursorPageResponse<RecipeSummaryResponse> likes(Long userId, Long cursor, int size) {
-        List<RecipeLike> fetched = recipeLikeRepository.findPageByUserId(
-                userId, RecipeStatus.PUBLISHED, orMax(cursor), Limit.of(size + 1));
-        return toSummaryPage(fetched, size, RecipeLike::getId, RecipeLike::getRecipe);
     }
 
     private static long orMax(Long cursor) {
