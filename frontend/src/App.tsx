@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { LoginPage } from './components/auth/LoginPage.tsx'
 import { SignupPage } from './components/auth/SignupPage.tsx'
+import { OnboardingPage } from './components/onboarding/OnboardingPage.tsx'
 import AppLayout from './layout/AppLayout.tsx'
 import RequireAuth from './layout/RequireAuth.tsx'
 
@@ -29,10 +30,10 @@ export default function App() {
         <Route element={<AppLayout hideTabBar />}>
           <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignupPage />} />
-          <Route element={<RequireAuth />}>
-            {/* 온보딩 화면은 F9-5에서 구현한다 */}
-            <Route path="onboarding" element={<h1>온보딩</h1>} />
-          </Route>
+        </Route>
+        {/* 온보딩은 앱 헤더·탭바 없이 자체 상단 바(로고·단계·진행 막대)만 쓴다 */}
+        <Route element={<RequireAuth />}>
+          <Route path="onboarding" element={<OnboardingPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
