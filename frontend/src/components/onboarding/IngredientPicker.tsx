@@ -10,14 +10,18 @@ interface IngredientPickerProps {
   onChange: (selected: Ingredient[]) => void
   /** 후보에서 뺄 재료 id. 알레르기와 비선호에 같은 재료가 들어가면 서버가 거부한다. */
   excludedIds: Set<number>
+  /** 후보에서 고르지 않은 글자가 입력창에 남아 있는지 알린다. 저장 전에 확정하게 하려는 용도다. */
+  onPendingChange: (pending: boolean) => void
 }
 
 // 온보딩 전용 최소 자동완성. shortcut: 검색 화면의 재료 검색창이 생기면 공용 컴포넌트로 합친다.
-export function IngredientPicker({ id, label, hint, variant, selected, onChange, excludedIds }: IngredientPickerProps) {
+export function IngredientPicker({ id, label, hint, variant, selected, onChange, excludedIds, onPendingChange }: IngredientPickerProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<{ q: string; items: Ingredient[] }>({ q: '', items: [] })
   const [active, setActive] = useState(0)
   const [open, setOpen] = useState(false)
+  const [failedQ, setFailedQ] = useState<string | null>(null)
+  const [retry, setRetry] = useState(0)
 
   useEffect(() => {
     const q = query.trim()
@@ -30,23 +34,28 @@ export function IngredientPicker({ id, label, hint, variant, selected, onChange,
           setResults({ q, items })
           setActive(0)
         })
-        .catch(() => {}) // 자동완성 실패는 후보 없음으로 둔다
+        // 취소가 아닌 실패는 알린다. 알레르기를 못 고른 채 넘어가지 않게 하기 위해서다.
+        .catch(() => {
+          if (!controller.signal.aborted) setFailedQ(q)
+        })
     }, 200)
     return () => {
       clearTimeout(timer)
       controller.abort()
     }
-  }, [query])
+  }, [query, retry])
 
   // 지금 입력에 대한 결과만 보여준다. 이전 입력의 후보를 Enter로 잘못 고르지 않게 한다.
   const q = query.trim()
   const options = q && results.q === q ? results.items.filter((item) => !excludedIds.has(item.id)) : []
   const expanded = open && options.length > 0
+  const failed = q !== '' && failedQ === q
   const listId = `${id}-list`
 
   function pick(item: Ingredient) {
     onChange([...selected, item])
     setQuery('')
+    onPendingChange(false)
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -84,11 +93,27 @@ export function IngredientPicker({ id, label, hint, variant, selected, onChange,
         onChange={(e) => {
           setQuery(e.target.value)
           setOpen(true)
+          onPendingChange(e.target.value.trim() !== '')
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={handleKeyDown}
       />
+      {failed && (
+        <p className="ingredient-picker__error" role="alert">
+          재료를 불러오지 못했어요.{' '}
+          <button
+            type="button"
+            className="ingredient-picker__retry"
+            onClick={() => {
+              setFailedQ(null)
+              setRetry((n) => n + 1)
+            }}
+          >
+            다시 시도
+          </button>
+        </p>
+      )}
       {expanded && (
         <ul id={listId} className="ingredient-picker__list" role="listbox" aria-label={`${label} 재료 후보`}>
           {options.map((item, i) => (

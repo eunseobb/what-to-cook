@@ -24,18 +24,27 @@ export function OnboardingPage() {
   const [dislikes, setDislikes] = useState<Ingredient[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pendingAllergy, setPendingAllergy] = useState(false)
+  const [pendingDislike, setPendingDislike] = useState(false)
 
-  useEffect(() => {
+  function loadTags() {
     getTags()
       .then(setTags)
       .catch((e: Error) => setError(e.message))
-  }, [])
+  }
+
+  useEffect(loadTags, [])
 
   function toggleTag(id: number) {
     setTagIds((ids) => (ids.includes(id) ? ids.filter((t) => t !== id) : [...ids, id]))
   }
 
   async function submit(skip: boolean) {
+    // 확정하지 않은 입력이 조용히 빠지면 알레르기가 추천 필터에 반영되지 않는다
+    if (!skip && (pendingAllergy || pendingDislike)) {
+      setError('입력 중인 재료가 있어요. 후보에서 고르거나 지운 뒤 완료해 주세요.')
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -124,6 +133,7 @@ export function OnboardingPage() {
               selected={allergies}
               onChange={setAllergies}
               excludedIds={pickedIds}
+              onPendingChange={setPendingAllergy}
             />
             <IngredientPicker
               id="onboarding-dislike"
@@ -133,14 +143,27 @@ export function OnboardingPage() {
               selected={dislikes}
               onChange={setDislikes}
               excludedIds={pickedIds}
+              onPendingChange={setPendingDislike}
             />
           </>
         )}
 
         {error && (
-          <p className="onboarding__error" role="alert">
-            {error}
-          </p>
+          <div className="onboarding__error" role="alert">
+            <p>{error}</p>
+            {step === 1 && tags === null && (
+              <button
+                type="button"
+                className="onboarding__secondary"
+                onClick={() => {
+                  setError(null)
+                  loadTags()
+                }}
+              >
+                다시 시도
+              </button>
+            )}
+          </div>
         )}
 
         <div className="onboarding__footer">
@@ -166,7 +189,16 @@ export function OnboardingPage() {
               <button type="button" className="onboarding__skip" disabled={submitting} onClick={() => submit(true)}>
                 건너뛰기
               </button>
-              <button type="button" className="onboarding__secondary" onClick={() => setStep(1)}>
+              <button
+                type="button"
+                className="onboarding__secondary"
+                onClick={() => {
+                  // 2단계 입력창은 사라지면서 입력 중이던 글자도 비워진다
+                  setPendingAllergy(false)
+                  setPendingDislike(false)
+                  setStep(1)
+                }}
+              >
                 이전
               </button>
               <button
