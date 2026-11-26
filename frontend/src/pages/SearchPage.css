@@ -1,0 +1,138 @@
+/* 재료 검색 결과 화면. 색은 tokens.css 변수만 쓴다. 모바일 = 세로가 3:4보다 긴 화면. */
+
+.search-page {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+  /* main 패딩(16px)과 합쳐 시안의 상단 여백 64px */
+  padding-top: var(--space-12);
+}
+
+.search-page__hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.search-page__brand {
+  display: none;
+}
+
+.search-page__title {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 700;
+}
+
+.search-page__desc {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 18px;
+}
+
+.search-page__results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.search-page__section-header {
+  display: flex;
+  align-items: flex-end;
+}
+
+.search-page__section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-hairline);
+}
+
+.search-page__section-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.search-page__section-desc {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.search-page__section-header > div {
+  flex-shrink: 0;
+}
+
+.search-page__error {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-control);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.search-page__more {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-2);
+}
+
+.search-page__more-button {
+  height: var(--space-12);
+  padding: 0 28px;
+  border: 1px solid var(--color-accent-navy);
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-accent-navy);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.search-page__more-button:disabled {
+  border-color: var(--color-accent-gray);
+  color: var(--color-text-muted);
+  cursor: default;
+}
+
+.search-page__more-button:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+@media (max-aspect-ratio: 3/4) {
+  .search-page {
+    gap: var(--space-10);
+    padding-top: var(--space-1);
+  }
+
+  .search-page__hero {
+    gap: var(--space-3);
+  }
+
+  /* 모바일은 헤더가 없어 제목 대신 서비스 이름을 보여준다 */
+  .search-page__brand {
+    display: block;
+    margin: 0;
+    color: var(--color-primary-strong);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .search-page__title,
+  .search-page__desc,
+  .search-page__section-desc {
+    display: none;
+  }
+
+  .search-page__results {
+    gap: 14px;
+  }
+
+  .search-page__section-title {
+    font-size: 19px;
+  }
+}

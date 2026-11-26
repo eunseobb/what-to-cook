@@ -1,0 +1,202 @@
+/* 재료 검색창·태그 필터 칩. 색은 tokens.css 변수만 쓴다. 모바일 = 세로가 3:4보다 긴 화면. */
+
+.ingredient-search {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 10px 10px 22px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-search);
+  background: var(--color-surface-input);
+}
+
+.ingredient-search:focus-within {
+  border-color: var(--color-primary-strong);
+}
+
+.ingredient-search__icon {
+  font-size: 18px;
+}
+
+.ingredient-search__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2) var(--space-1) 10px;
+  /* 시안 8px: 대응 radius 토큰이 없어 간격 토큰으로 맞춘다 */
+  border-radius: var(--space-2);
+  background: var(--color-accent-sage-soft);
+  color: var(--color-primary-strong);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ingredient-search__chip button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ingredient-search__input {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: var(--space-3) 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 16px;
+}
+
+.ingredient-search__input::placeholder {
+  color: var(--color-text-muted-soft);
+}
+
+/* 19px 굵은 글씨라 primary 위 흰 계열 글씨 대비 기준(큰 글씨 3:1)을 넘는다 */
+.ingredient-search__submit {
+  margin-left: auto;
+  padding: var(--space-3) var(--space-6);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-canvas);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ingredient-search__submit:hover {
+  background: var(--color-primary-strong);
+}
+
+.ingredient-search__submit:disabled {
+  background: var(--color-accent-gray);
+  cursor: default;
+}
+
+.ingredient-search__chip button:focus-visible,
+.ingredient-search__submit:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+.ingredient-search__options {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 0;
+  padding: var(--space-1) 0;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  list-style: none;
+}
+
+.ingredient-search__option {
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-text-body);
+  cursor: pointer;
+}
+
+.ingredient-search__option:hover,
+.ingredient-search__option[aria-selected='true'] {
+  background: var(--color-accent-sage-soft);
+  color: var(--color-primary-strong);
+}
+
+/* 태그 필터 */
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-filter__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2) 14px;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-text-body);
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tag-filter__chip:hover {
+  border-color: var(--color-primary-strong);
+}
+
+.tag-filter__chip--selected {
+  padding-right: 10px;
+  border-color: var(--color-primary);
+  background: var(--color-accent-sage);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.tag-filter__remove {
+  color: var(--color-primary-strong);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tag-filter__chip:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+@media (max-aspect-ratio: 3/4) {
+  .ingredient-search {
+    padding: var(--space-2) var(--space-2) var(--space-2) 14px;
+  }
+
+  .ingredient-search__icon {
+    font-size: 15px;
+  }
+
+  .ingredient-search__chip {
+    font-size: 12px;
+  }
+
+  .ingredient-search__input {
+    padding: var(--space-2) 0;
+    font-size: 13px;
+  }
+
+  /* 14px 글씨라 primary 대신 대비 확보용 strong 배경을 쓴다(루트 지침 우선) */
+  .ingredient-search__submit {
+    padding: var(--space-2) 14px;
+    background: var(--color-primary-strong);
+    font-size: 14px;
+  }
+
+  .tag-filter__chip {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
+  .tag-filter__chip--selected {
+    padding-right: 10px;
+  }
+
+  .tag-filter__remove {
+    font-size: 13px;
+  }
+}
