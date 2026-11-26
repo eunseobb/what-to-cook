@@ -4,6 +4,8 @@ import './search.css'
 
 const MAX_INGREDIENTS = 30 // 백엔드 추천 요청 한도
 const DEBOUNCE_MS = 150
+// 후보는 요청 당시 검색어와 함께 둔다. 입력이 바뀐 뒤 이전 후보가 선택되지 않게 하기 위해서다.
+const NO_SUGGESTIONS = { q: '', items: [] as IngredientOption[] }
 
 interface IngredientSearchBarProps {
   /** 처음 칩으로 보여줄 재료. 바깥 값이 바뀌면 key를 바꿔 다시 마운트한다. */
@@ -16,7 +18,7 @@ interface IngredientSearchBarProps {
 export function IngredientSearchBar({ initialIngredients = [], onSearch }: IngredientSearchBarProps) {
   const [chips, setChips] = useState(initialIngredients)
   const [text, setText] = useState('')
-  const [suggestions, setSuggestions] = useState<IngredientOption[]>([])
+  const [suggestions, setSuggestions] = useState(NO_SUGGESTIONS)
   const [active, setActive] = useState(-1)
   const listId = useId()
 
@@ -27,11 +29,11 @@ export function IngredientSearchBar({ initialIngredients = [], onSearch }: Ingre
     const timer = setTimeout(() => {
       autocompleteIngredients(q, controller.signal)
         .then((result) => {
-          setSuggestions(result)
+          setSuggestions({ q, items: result })
           setActive(-1)
         })
         // 자동완성 실패(취소 포함)는 후보 없이 입력만 계속 받는다
-        .catch(() => setSuggestions([]))
+        .catch(() => setSuggestions(NO_SUGGESTIONS))
     }, DEBOUNCE_MS)
     return () => {
       clearTimeout(timer)
@@ -39,14 +41,15 @@ export function IngredientSearchBar({ initialIngredients = [], onSearch }: Ingre
     }
   }, [text])
 
-  const options = text.trim() ? suggestions.filter((s) => !chips.some((c) => c.id === s.id)) : []
+  const current = suggestions.q && suggestions.q === text.trim()
+  const options = current ? suggestions.items.filter((s) => !chips.some((c) => c.id === s.id)) : []
   const open = options.length > 0
   const full = chips.length >= MAX_INGREDIENTS
 
   const add = (option: IngredientOption) => {
     if (!full) setChips([...chips, option])
     setText('')
-    setSuggestions([])
+    setSuggestions(NO_SUGGESTIONS)
   }
 
   const remove = (id: number) => setChips(chips.filter((c) => c.id !== id))
@@ -64,7 +67,7 @@ export function IngredientSearchBar({ initialIngredients = [], onSearch }: Ingre
       e.preventDefault()
       add(options[Math.max(active, 0)])
     } else if (e.key === 'Escape') {
-      setSuggestions([])
+      setSuggestions(NO_SUGGESTIONS)
     } else if (e.key === 'Backspace' && !text && chips.length > 0) {
       remove(chips[chips.length - 1].id)
     }
@@ -104,7 +107,7 @@ export function IngredientSearchBar({ initialIngredients = [], onSearch }: Ingre
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={onKeyDown}
-        onBlur={() => setSuggestions([])}
+        onBlur={() => setSuggestions(NO_SUGGESTIONS)}
       />
       <button type="submit" className="ingredient-search__submit" disabled={chips.length === 0}>
         검색
