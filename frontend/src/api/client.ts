@@ -33,13 +33,15 @@ function refreshTokens(): Promise<boolean> {
   refreshing ??= (async () => {
     const refreshToken = tokenStorage.getRefresh()
     if (!refreshToken) return false
-    // 네트워크 오류는 그대로 던진다. 일시적 장애로 로그아웃시키지 않기 위해서다.
+    // 네트워크 오류와 5xx 등은 던진다. 일시적 장애로 로그아웃시키지 않기 위해서다.
     const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     })
-    if (!res.ok) return false
+    // 백엔드는 무효 토큰에 401, 형식 오류에 400을 준다. 이 둘만 세션 만료로 본다.
+    if (res.status === 400 || res.status === 401) return false
+    if (!res.ok) throw new Error(`토큰 재발급 실패: ${res.status}`)
     tokenStorage.set(await res.json())
     return true
   })().finally(() => {
@@ -61,9 +63,11 @@ export function loginPath(redirect = window.location.pathname + window.location.
 // Access 토큰이 만료돼 401이 오면 Refresh로 재발급하고 한 번 다시 보낸다. 재발급에 실패하면 로그인 화면으로 보낸다.
 export async function authFetch(request: Request): Promise<Response> {
   const retry = request.clone()
+  const sentToken = tokenStorage.get()
   const res = await fetch(withToken(request))
   if (res.status !== 401 || !tokenStorage.getRefresh()) return res
-  if (await refreshTokens()) return fetch(withToken(retry))
+  // 다른 요청이 이미 재발급했으면 Refresh 토큰을 다시 회전시키지 않고 새 토큰으로 재시도한다.
+  if (tokenStorage.get() !== sentToken || (await refreshTokens())) return fetch(withToken(retry))
   tokenStorage.clear()
   window.location.assign(loginPath())
   return res
