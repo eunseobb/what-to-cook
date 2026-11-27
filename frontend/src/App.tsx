@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { LoginPage } from './components/auth/LoginPage.tsx'
 import { SignupPage } from './components/auth/SignupPage.tsx'
+import { RecipeEditorPage } from './components/recipe-editor/RecipeEditorPage.tsx'
 import AppLayout from './layout/AppLayout.tsx'
 import RequireAuth from './layout/RequireAuth.tsx'
 
@@ -32,6 +33,8 @@ export default function App() {
           <Route element={<RequireAuth />}>
             {/* 온보딩 화면은 F9-5에서 구현한다 */}
             <Route path="onboarding" element={<h1>온보딩</h1>} />
+            <Route path="recipes/new" element={<RecipeEditorPage />} />
+            <Route path="recipes/:recipeId/edit" element={<RecipeEditorPage />} />
           </Route>
         </Route>
       </Routes>
