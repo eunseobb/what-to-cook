@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
+import { RecipeDetailRoute } from './components/recipe/RecipeDetail.tsx'
 import AppLayout from './layout/AppLayout.tsx'
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="browse" element={<h1>둘러보기</h1>} />
           <Route path="search" element={<h1>검색</h1>} />
           <Route path="mypage" element={<h1>마이페이지</h1>} />
+          <Route path="recipes/:recipeId" element={<RecipeDetailRoute />} />
         </Route>
       </Routes>
     </BrowserRouter>

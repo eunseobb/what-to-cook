@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { ApiError, errorMessage } from '../../api/client'
 import { setBookmark, setLike } from '../../api/community'
 import { CommentSection } from '../community/CommentSection'
@@ -8,6 +8,12 @@ import { fetchRecipeDetail, type Difficulty, type RecipeDetail as RecipeDetailDa
 import './recipe.css'
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = { EASY: '쉬움', NORMAL: '보통', HARD: '어려움' }
+
+/** /recipes/:recipeId 라우트. 다른 레시피로 이동하면 key로 상태를 새로 만든다. */
+export function RecipeDetailRoute() {
+  const { recipeId } = useParams()
+  return <RecipeDetail key={recipeId} recipeId={Number(recipeId)} />
+}
 
 /** 레시피 상세 화면. 데스크톱은 대표 이미지 옆에 요약·재료, 모바일은 한 열로 쌓는다. */
 export function RecipeDetail({ recipeId }: { recipeId: number }) {
