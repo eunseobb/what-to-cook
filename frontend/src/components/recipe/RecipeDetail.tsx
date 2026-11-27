@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ApiError, errorMessage } from '../../api/client'
 import { setBookmark, setLike } from '../../api/community'
+import { CommentSection } from '../community/CommentSection'
 import { ReportButton } from '../community/ReportButton'
 import { fetchRecipeDetail, type Difficulty, type RecipeDetail as RecipeDetailData } from '../../api/recipe'
 import './recipe.css'
@@ -191,6 +192,7 @@ export function RecipeDetail({ recipeId }: { recipeId: number }) {
             ))}
           </ol>
         </section>
+        <CommentSection recipeId={recipeId} />
       </div>
     </article>
   )
