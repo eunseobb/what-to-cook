@@ -1,0 +1,164 @@
+/* 댓글. 색은 tokens.css 변수만 쓴다. 모바일 = 세로가 3:4보다 긴 화면. */
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.comments__title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.comments__error {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 14px;
+}
+
+.comments__list,
+.comments__list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.comments__reply-form {
+  padding: 0 0 var(--space-4) var(--space-10);
+}
+
+.comments__more {
+  align-self: center;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.comment-form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.comment-form__field {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 13px var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 15px;
+}
+
+.comment-form__field::placeholder {
+  color: var(--color-text-muted-soft);
+}
+
+/* 15px 굵은 글씨라 primary 대신 대비가 높은 primary-strong 배경을 쓴다(시안과 같다) */
+.comment-form__submit {
+  padding: 13px var(--space-5);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary-strong);
+  color: var(--color-canvas);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.comment-form__submit:disabled {
+  background: var(--color-accent-gray);
+  cursor: default;
+}
+
+.comment {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.comment--reply {
+  padding-left: var(--space-10);
+}
+
+.comment p {
+  margin: 0;
+}
+
+.comment__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.comment__author {
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.comment__arrow {
+  color: var(--color-text-muted-soft);
+  font-size: 14px;
+}
+
+.comment__time {
+  color: var(--color-text-muted-soft);
+  font-size: 12px;
+}
+
+.comment__content {
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.comment__removed {
+  color: var(--color-text-muted-soft);
+  font-size: 15px;
+}
+
+.comment__actions {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.comment__actions button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.comments button:focus-visible,
+.comment-form__field:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+@media (max-aspect-ratio: 3/4) {
+  .comments__title {
+    font-size: 20px;
+  }
+
+  .comment--reply,
+  .comments__reply-form {
+    padding-left: var(--space-6);
+  }
+}

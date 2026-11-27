@@ -22,3 +22,28 @@ api.use({
     return request
   },
 })
+
+/** 백엔드 ErrorResponse(code, message)를 담은 오류. status로 401·409 등을 구분한다. */
+export class ApiError extends Error {
+  readonly status: number
+  readonly code?: string
+
+  constructor(status: number, code: string | undefined, message: string) {
+    super(message)
+    this.status = status
+    this.code = code
+  }
+}
+
+/** 화면에 보여줄 오류 문구. 401은 로그인 안내로 바꾼다. */
+export function errorMessage(e: unknown) {
+  if (e instanceof ApiError) return e.status === 401 ? '로그인이 필요해요.' : e.message
+  return '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'
+}
+
+/** openapi-fetch 결과가 실패면 ApiError를 던진다. */
+export function throwIfFailed(response: Response, error: unknown, fallback: string) {
+  if (response.ok) return
+  const body = error as { code?: string; message?: string } | undefined
+  throw new ApiError(response.status, body?.code, body?.message ?? fallback)
+}
