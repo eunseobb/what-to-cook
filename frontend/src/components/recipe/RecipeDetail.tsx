@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ApiError, errorMessage } from '../../api/client'
 import { setBookmark, setLike } from '../../api/community'
+import { ReportButton } from '../community/ReportButton'
 import { fetchRecipeDetail, type Difficulty, type RecipeDetail as RecipeDetailData } from '../../api/recipe'
 import './recipe.css'
 
@@ -83,6 +84,7 @@ export function RecipeDetail({ recipeId }: { recipeId: number }) {
         <button type="button" className="recipe-detail__back" onClick={() => navigate(-1)}>
           <span aria-hidden="true">‹</span> 뒤로
         </button>
+        <ReportButton targetType="RECIPE" targetId={recipeId} className="recipe-detail__report" />
       </div>
 
       <div className="recipe-detail__top">
@@ -145,6 +147,7 @@ export function RecipeDetail({ recipeId }: { recipeId: number }) {
                 >
                   <span aria-hidden="true">{bookmarked ? '★' : '☆'}</span> 저장
                 </button>
+                <ReportButton targetType="RECIPE" targetId={recipeId} className="recipe-detail__report" />
               </div>
             </section>
 

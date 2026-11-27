@@ -569,6 +569,17 @@
   cursor: progress;
 }
 
+.recipe-detail__report {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .recipe-detail button:focus-visible {
   outline: 2px solid var(--color-primary-strong);
   outline-offset: 2px;
@@ -591,5 +602,10 @@
 
   .recipe-detail__action {
     flex: 1 1 0;
+  }
+
+  /* 모바일에서 레시피 신고는 상단 바에만 둔다 */
+  .recipe-detail__actions .recipe-detail__report {
+    display: none;
   }
 }
