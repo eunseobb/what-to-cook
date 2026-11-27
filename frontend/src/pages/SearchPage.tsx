@@ -13,13 +13,9 @@ import {
 import { RecipeGrid } from '../components/recipe/RecipeGrid'
 import { IngredientSearchBar } from '../components/search/IngredientSearchBar'
 import { TagFilter } from '../components/search/TagFilter'
-import { searchHref } from '../components/search/searchHref'
+import { parseIds, searchHref } from '../components/search/searchHref'
 import './SearchPage.css'
 
-// 쿼리스트링 값 중 양의 정수 ID만 중복 없이 쓴다
-const parseIds = (values: string[]) => [
-  ...new Set(values.map(Number).filter((n) => Number.isSafeInteger(n) && n > 0)),
-]
 const splitIds = (key: string) => (key ? key.split(',').map(Number) : [])
 
 type Result = CursorPage<RecommendedRecipe> & { key: string; error?: unknown; moreError?: unknown }
