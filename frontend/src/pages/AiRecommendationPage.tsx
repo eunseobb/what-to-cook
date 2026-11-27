@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { recommendWithAi, type AiRecipe } from '../api/ai'
-import { getIngredients, type IngredientOption } from '../api/search'
+import { ApiError, getIngredients, type IngredientOption } from '../api/search'
 import { RecipeCard, RecipeCardSkeleton, type RecipeCardData } from '../components/recipe/RecipeCard'
 import { parseIds, searchHref } from '../components/search/searchHref'
 import './AiRecommendationPage.css'
@@ -14,6 +14,22 @@ const SPINNER_PATH =
 type Result =
   | { key: string; status: 'done'; recipes: AiRecipe[] }
   | { key: string; status: 'error'; error: unknown }
+
+type Failure = { kind: 'rate-limit' } | { kind: 'unavailable'; message: string; retryable: boolean }
+
+const UNAVAILABLE_MESSAGE = '잠시 후 다시 시도해 주세요. 요청이 많거나 AI 서비스에 문제가 있을 때 생겨요.'
+
+// 사용자별 한도 초과(AI006)만 따로 안내하고, 서킷 오픈·타임아웃·생성 실패·대기열 초과는 다시 시도를 권한다.
+// 로그인 필요(401)와 재료를 못 알아본 경우(400)는 다시 시도해도 같아서 버튼 없이 이유만 보여준다.
+function toFailure(error: unknown): Failure {
+  if (!(error instanceof ApiError)) return { kind: 'unavailable', message: UNAVAILABLE_MESSAGE, retryable: true }
+  if (error.code === 'AI006') return { kind: 'rate-limit' }
+  if (error.status === 401) {
+    return { kind: 'unavailable', message: '로그인하면 AI 추천을 받을 수 있어요.', retryable: false }
+  }
+  if (error.status === 400) return { kind: 'unavailable', message: error.message, retryable: false }
+  return { kind: 'unavailable', message: UNAVAILABLE_MESSAGE, retryable: true }
+}
 
 // 상세 응답의 태그에는 색 키가 없어 첫 태그(음식 종류 우선 정렬)를 기본 색으로 카드에 보인다.
 const toCard = (recipe: AiRecipe): RecipeCardData => ({
@@ -29,9 +45,13 @@ export function AiRecommendationPage() {
 
   const [names, setNames] = useState<{ key: string; items: IngredientOption[] }>({ key: '', items: [] })
   const [result, setResult] = useState<Result | null>(null)
+  // 다시 시도할 때마다 올려 같은 재료로 새로 요청한다
+  const [attempt, setAttempt] = useState(0)
+  const requestKey = `${ingredientKey}#${attempt}`
 
   useEffect(() => {
     if (!ingredientKey) return
+    const key = `${ingredientKey}#${attempt}`
     const controller = new AbortController()
     const done = (next: Result) => {
       if (!controller.signal.aborted) setResult(next)
@@ -45,13 +65,20 @@ export function AiRecommendationPage() {
           controller.signal,
         )
       })
-      .then((recipes) => done({ key: ingredientKey, status: 'done', recipes }))
-      .catch((error: unknown) => done({ key: ingredientKey, status: 'error', error }))
+      .then((recipes) =>
+        done(
+          recipes.length > 0
+            ? { key, status: 'done', recipes }
+            : { key, status: 'error', error: new ApiError(200, '', 'AI005') },
+        ),
+      )
+      .catch((error: unknown) => done({ key, status: 'error', error }))
     // 화면을 떠나면 폴링을 멈춘다
     return () => controller.abort()
-  }, [ingredientKey])
+  }, [ingredientKey, attempt])
 
-  const current = result?.key === ingredientKey ? result : null
+  const current = result?.key === requestKey ? result : null
+  const failure = current?.status === 'error' ? toFailure(current.error) : null
   const loading = ingredientKey !== '' && !current
   const chips = names.key === ingredientKey ? names.items : []
 
@@ -123,10 +150,33 @@ export function AiRecommendationPage() {
         </>
       )}
 
-      {current?.status === 'error' && (
-        <p className="ai-page__empty" role="alert">
-          AI 레시피를 만들지 못했어요.
-        </p>
+      {failure?.kind === 'rate-limit' && (
+        <section className="ai-page__error" role="alert">
+          <h2 className="ai-page__error-title">AI 추천을 잠시 쉬어 갈게요</h2>
+          {/* 백엔드 app.ai.rate-limit(10회/1시간)과 같은 값. 설정을 바꾸면 함께 고친다 */}
+          <p className="ai-page__error-desc">
+            AI 추천은 1시간에 10번까지 받을 수 있어요. 조금 뒤에 다시 시도하거나, 커뮤니티 레시피를 둘러보세요.
+          </p>
+          <Link className="ai-page__error-button" to="/browse">
+            둘러보기로 가기
+          </Link>
+        </section>
+      )}
+
+      {failure?.kind === 'unavailable' && (
+        <section className="ai-page__error" role="alert">
+          <h2 className="ai-page__error-title">지금은 AI 추천을 쓸 수 없어요</h2>
+          <p className="ai-page__error-desc">{failure.message}</p>
+          {failure.retryable && (
+            <button
+              type="button"
+              className="ai-page__error-button ai-page__error-button--primary"
+              onClick={() => setAttempt((n) => n + 1)}
+            >
+              다시 시도
+            </button>
+          )}
+        </section>
       )}
     </div>
   )
