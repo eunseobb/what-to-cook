@@ -13,7 +13,7 @@ import {
 import { RecipeGrid } from '../components/recipe/RecipeGrid'
 import { IngredientSearchBar } from '../components/search/IngredientSearchBar'
 import { TagFilter } from '../components/search/TagFilter'
-import { parseIds, searchHref } from '../components/search/searchHref'
+import { aiHref, parseIds, searchHref } from '../components/search/searchHref'
 import './SearchPage.css'
 
 const splitIds = (key: string) => (key ? key.split(',').map(Number) : [])
@@ -89,6 +89,8 @@ export function SearchPage() {
       .finally(() => setLoadingMore(false))
   }
 
+  const requestAi = () => navigate(aiHref(ingredientIds, tagIds))
+
   const namesReady = !ingredientKey || names.key === ingredientKey
 
   return (
@@ -123,10 +125,10 @@ export function SearchPage() {
               {errorMessage(current.error)}
             </p>
           ) : (
-            // F9-8에서 onRequestAi로 AI 추천 화면을 연결한다
             <RecipeGrid
               loading={!current}
               recipes={(current?.items ?? []).map((item) => ({ ...item.recipe, matchRate: item.matchRate }))}
+              onRequestAi={requestAi}
             />
           )}
           {current?.moreError != null && (
@@ -141,6 +143,18 @@ export function SearchPage() {
               </button>
             </div>
           )}
+        </section>
+      )}
+
+      {current && current.items.length > 0 && (
+        <section className="search-page__cta" aria-labelledby="search-cta-title">
+          <h2 id="search-cta-title" className="search-page__cta-title">
+            원하는 레시피가 없나요?
+          </h2>
+          <p className="search-page__cta-desc">가진 재료만 알려주면 AI가 바로 만들어 드려요.</p>
+          <button type="button" className="recipe-empty__button" onClick={requestAi}>
+            AI로 추천받기
+          </button>
         </section>
       )}
     </div>
