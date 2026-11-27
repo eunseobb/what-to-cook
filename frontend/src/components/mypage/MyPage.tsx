@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { logout } from '../../api/auth'
 import { fetchMyPreferenceTags, fetchMyRecipes, type MyRecipeList } from '../../api/mypage'
 import type { RecipeSummary, TagResponse } from '../../api/recipe'
 import { RecipeGrid } from '../recipe/RecipeGrid'
@@ -14,6 +15,7 @@ const TABS: { list: MyRecipeList; label: string; empty: string }[] = [
 const pageSize = () => (window.matchMedia('(max-aspect-ratio: 3/4)').matches ? 6 : 12)
 
 export function MyPage() {
+  const navigate = useNavigate()
   const [params] = useSearchParams()
   // 탭 상태는 쿼리스트링에 둔다(뒤로가기·새로고침에도 같은 탭)
   const tab = TABS.find((t) => t.list === params.get('tab')) ?? TABS[0]
@@ -25,10 +27,18 @@ export function MyPage() {
     fetchMyPreferenceTags().then(setTags, () => setTags([]))
   }, [])
 
+  async function handleLogout() {
+    await logout()
+    navigate('/', { replace: true })
+  }
+
   return (
     <div className="mypage">
       <div className="mypage__title-row">
         <h1 className="mypage__title">마이페이지</h1>
+        <button type="button" className="mypage__button mypage__button--muted" onClick={handleLogout}>
+          로그아웃
+        </button>
       </div>
 
       <section className="mypage__profile" aria-label="내 취향">

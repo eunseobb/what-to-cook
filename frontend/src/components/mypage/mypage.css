@@ -83,6 +83,10 @@
   cursor: pointer;
 }
 
+.mypage__button--muted {
+  color: var(--color-text-muted);
+}
+
 .mypage__button:hover {
   border-color: var(--color-accent-gray);
 }
