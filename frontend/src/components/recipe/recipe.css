@@ -190,3 +190,351 @@
     font-size: 18px;
   }
 }
+
+/* 레시피 상세 */
+.recipe-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-2) 0 120px;
+}
+
+.recipe-detail__status {
+  padding: var(--space-12) 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.recipe-detail__status a {
+  color: var(--color-primary-strong);
+}
+
+/* 모바일 상단 바는 데스크톱에서 숨긴다 */
+.recipe-detail__topbar {
+  display: none;
+}
+
+.recipe-detail__top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.recipe-detail__breadcrumb {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  word-spacing: 2px;
+}
+
+.recipe-detail__breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.recipe-detail__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+
+.recipe-detail__thumb {
+  position: relative;
+  flex: 0 1 680px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  /* 상세 응답의 태그에는 colorKey가 없어 기본 플레이스홀더 색을 쓴다 */
+  background: var(--color-accent-sage);
+}
+
+.recipe-detail__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recipe-detail__side {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 320px;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.recipe-detail__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.recipe-detail__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recipe-detail__tag {
+  padding: var(--space-1) 10px;
+  border-radius: var(--radius-tag);
+  background: var(--color-accent-sage-soft);
+  color: var(--color-primary-strong);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.recipe-detail__title {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.recipe-detail__meta {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.recipe-detail__stats {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.recipe-detail__stat {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 14px var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-card);
+}
+
+.recipe-detail__stat dt {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.recipe-detail__stat dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.recipe-detail__ingredients {
+  padding: var(--space-5) var(--space-6) var(--space-3);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-input);
+}
+
+.recipe-detail__ingredients-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.recipe-detail__ingredients-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.recipe-detail__ingredients ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recipe-detail__ingredient {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-hairline);
+  font-size: 15px;
+}
+
+.recipe-detail__quantity {
+  color: var(--color-text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.recipe-detail__lower {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 760px;
+}
+
+.recipe-detail__section-title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.recipe-detail__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.recipe-detail__steps ol {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recipe-detail__step {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.recipe-detail__step-number {
+  display: flex;
+  flex: 0 0 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-sage-soft);
+  color: var(--color-primary-strong);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.recipe-detail__step-body {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.recipe-detail__step-body p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.recipe-detail__step-body img {
+  display: block;
+  width: 360px;
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-control);
+}
+
+@media (max-aspect-ratio: 3/4) {
+  .recipe-detail {
+    gap: 0;
+    padding: 0 0 var(--space-8);
+  }
+
+  .recipe-detail__topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) 0;
+    padding: 14px var(--space-4);
+  }
+
+  .recipe-detail__back {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .recipe-detail__breadcrumb {
+    display: none;
+  }
+
+  .recipe-detail__hero,
+  .recipe-detail__side {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 36px;
+  }
+
+  /* 모바일 시안은 대표 이미지를 화면 끝까지 채우고, 요약과의 간격은 20px이다 */
+  .recipe-detail__thumb {
+    flex-basis: auto;
+    margin: 0 calc(-1 * var(--space-4)) -16px;
+    border-radius: 0;
+  }
+
+  .recipe-detail__side {
+    min-width: 0;
+  }
+
+  .recipe-detail__summary {
+    gap: var(--space-3);
+  }
+
+  .recipe-detail__title {
+    font-size: 26px;
+  }
+
+  .recipe-detail__meta {
+    font-size: 13px;
+  }
+
+  .recipe-detail__stats {
+    gap: var(--space-2);
+  }
+
+  .recipe-detail__stat dd {
+    font-size: 16px;
+  }
+
+  .recipe-detail__ingredients {
+    padding: var(--space-5) var(--space-4) var(--space-3);
+  }
+
+  .recipe-detail__ingredients-head h2 {
+    font-size: 18px;
+  }
+
+  .recipe-detail__lower {
+    gap: 36px;
+    margin-top: 36px;
+  }
+
+  .recipe-detail__section-title {
+    font-size: 20px;
+  }
+
+  .recipe-detail__steps,
+  .recipe-detail__steps ol {
+    gap: var(--space-5);
+  }
+
+  .recipe-detail__step {
+    gap: var(--space-3);
+  }
+
+  .recipe-detail__step-body p {
+    font-size: 15px;
+  }
+
+  .recipe-detail__step-body img {
+    width: 100%;
+  }
+}
