@@ -31,6 +31,13 @@ export async function signup(request: SignupRequest) {
   await login(request.email, request.password)
 }
 
+// 서버의 Refresh 토큰을 폐기한다. 서버 호출이 실패해도 이 기기의 토큰은 지워 로그아웃시킨다.
+export async function logout() {
+  const refreshToken = tokenStorage.getRefresh()
+  tokenStorage.clear()
+  if (refreshToken) await post('/api/auth/logout', { refreshToken }).catch(() => {})
+}
+
 // 로그인 후 돌아갈 경로. 외부 주소로 보내는 오픈 리다이렉트를 막기 위해 같은 사이트 경로만 허용한다.
 export function safeRedirect(path: string | null) {
   return path && path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\') ? path : '/'

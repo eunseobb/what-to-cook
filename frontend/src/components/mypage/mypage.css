@@ -1,0 +1,205 @@
+/* 마이페이지. 색은 tokens.css 변수만 쓴다. 모바일 = 세로가 3:4보다 긴 화면. */
+
+.mypage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12) 0 120px;
+}
+
+.mypage__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.mypage__title {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.mypage__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-card);
+}
+
+.mypage__profile-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.mypage__profile-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.mypage__profile-sub {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.mypage__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mypage__tag {
+  padding: var(--space-1) 10px;
+  border-radius: var(--radius-tag);
+  background: var(--color-accent-sage-soft);
+  color: var(--color-primary-strong);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mypage__button {
+  flex-shrink: 0;
+  padding: 10px var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mypage__button--muted {
+  color: var(--color-text-muted);
+}
+
+.mypage__button:hover {
+  border-color: var(--color-accent-gray);
+}
+
+.mypage__button:disabled {
+  color: var(--color-text-muted-soft);
+  cursor: default;
+}
+
+.mypage__button:focus-visible,
+.mypage__tab:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+.mypage__tabs {
+  display: flex;
+  gap: 28px;
+  margin-bottom: calc(var(--space-2) * -1); /* 시안의 탭~그리드 간격 24px */
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.mypage__tab {
+  padding: var(--space-3) 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mypage__tab--active {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary-strong);
+  font-weight: 700;
+}
+
+.mypage__empty,
+.mypage__error {
+  margin: 0;
+  padding: var(--space-12) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.mypage__error {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.mypage__more {
+  display: flex;
+  justify-content: center;
+}
+
+.mypage__button--more {
+  padding: var(--space-3) var(--space-8);
+  font-size: 15px;
+}
+
+@media (max-aspect-ratio: 3/4) {
+  .mypage {
+    gap: var(--space-5);
+    padding: var(--space-1) 0 var(--space-6);
+  }
+
+  .mypage__title {
+    font-size: 26px;
+  }
+
+  .mypage__profile {
+    flex-wrap: wrap;
+    padding: var(--space-4);
+  }
+
+  .mypage__profile-name {
+    font-size: 17px;
+  }
+
+  .mypage__profile-sub {
+    font-size: 13px;
+  }
+
+  /* 모바일에서는 태그를 제목 아래 한 줄로 내린다 */
+  .mypage__tags {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .mypage__button {
+    padding: var(--space-2) var(--space-3);
+    font-size: 13px;
+  }
+
+  .mypage__tabs {
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  .mypage__tab {
+    flex: 1;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .mypage__button--more {
+    width: 100%;
+    padding: var(--space-3) var(--space-5);
+    font-size: 15px;
+  }
+}
