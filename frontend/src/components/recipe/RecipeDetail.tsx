@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { ApiError } from '../../api/client'
+import { ApiError, errorMessage } from '../../api/client'
+import { setBookmark, setLike } from '../../api/community'
 import { fetchRecipeDetail, type Difficulty, type RecipeDetail as RecipeDetailData } from '../../api/recipe'
 import './recipe.css'
 
@@ -25,6 +26,40 @@ export function RecipeDetail({ recipeId }: { recipeId: number }) {
       ignore = true
     }
   }, [recipeId])
+
+  // shortcut: 상세 응답에 내 좋아요·저장 여부가 없어 꺼진 상태로 시작한다, 백엔드가 liked·bookmarked를 주면 초기값으로 쓴다
+  const [liked, setLiked] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  async function toggleLike() {
+    const next = !liked
+    setBusy(true)
+    try {
+      await setLike(recipeId, next)
+      setLiked(next)
+      setRecipe((r) => r && { ...r, likeCount: r.likeCount + (next ? 1 : -1) })
+    } catch (e) {
+      // 이미 좋아요(L001)했거나 좋아요하지 않은(L002) 상태면 서버 상태에 맞추기만 한다
+      if (e instanceof ApiError && (e.code === 'L001' || e.code === 'L002')) setLiked(next)
+      else window.alert(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function toggleBookmark() {
+    const next = !bookmarked
+    setBusy(true)
+    try {
+      await setBookmark(recipeId, next)
+      setBookmarked(next)
+    } catch (e) {
+      window.alert(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   if (error) {
     return (
@@ -90,6 +125,27 @@ export function RecipeDetail({ recipeId }: { recipeId: number }) {
                   <dd>{recipe.servings}인분</dd>
                 </div>
               </dl>
+              {/* 모바일에서는 하단 고정 바가 된다. shortcut: 아이콘은 시안의 텍스트 글리프, 아이콘 세트를 정하면 교체 */}
+              <div className="recipe-detail__actions">
+                <button
+                  type="button"
+                  className="recipe-detail__action"
+                  aria-pressed={liked}
+                  disabled={busy}
+                  onClick={toggleLike}
+                >
+                  <span aria-hidden="true">{liked ? '♥' : '♡'}</span> 좋아요 {recipe.likeCount}
+                </button>
+                <button
+                  type="button"
+                  className="recipe-detail__action"
+                  aria-pressed={bookmarked}
+                  disabled={busy}
+                  onClick={toggleBookmark}
+                >
+                  <span aria-hidden="true">{bookmarked ? '★' : '☆'}</span> 저장
+                </button>
+              </div>
             </section>
 
             <section className="recipe-detail__ingredients" aria-labelledby="recipe-ingredients-title">

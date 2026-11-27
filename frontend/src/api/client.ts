@@ -35,6 +35,12 @@ export class ApiError extends Error {
   }
 }
 
+/** 화면에 보여줄 오류 문구. 401은 로그인 안내로 바꾼다. */
+export function errorMessage(e: unknown) {
+  if (e instanceof ApiError) return e.status === 401 ? '로그인이 필요해요.' : e.message
+  return '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.'
+}
+
 /** openapi-fetch 결과가 실패면 ApiError를 던진다. */
 export function throwIfFailed(response: Response, error: unknown, fallback: string) {
   if (response.ok) return
