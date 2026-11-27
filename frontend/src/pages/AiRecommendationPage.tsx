@@ -136,8 +136,8 @@ export function AiRecommendationPage() {
             {current.recipes.map((recipe) => (
               <li key={recipe.id} className="ai-page__card">
                 <RecipeCard recipe={toCard(recipe)} />
-                {/* 편집 화면(F9-10)이 AI 레시피를 가져와(POST /api/recipes/{id}/fork) 편집한다 */}
-                <Link className="ai-page__edit" to={`/recipes/new?fromAi=${recipe.id}`}>
+                {/* 작성 화면(F9-10)이 상세 API로 AI 레시피를 불러와 채운다. 올리기 전에는 저장하지 않는다 */}
+                <Link className="ai-page__edit" to={`/recipes/new?from=${recipe.id}`}>
                   편집해서 올리기
                 </Link>
               </li>
