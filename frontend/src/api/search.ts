@@ -50,21 +50,23 @@ interface SearchPaths {
 
 const client = api as unknown as Client<SearchPaths>
 
-/** API 오류. status 401이면 로그인이 필요하다. */
+/** API 오류. status 401이면 로그인이 필요하다. code는 백엔드 ErrorCode(예: AI006)다. */
 export class ApiError extends Error {
   readonly status: number
+  readonly code?: string
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message)
     this.status = status
+    this.code = code
   }
 }
 
-async function unwrap<T>(
+export async function unwrap<T>(
   call: Promise<{ data?: T; error?: ErrorResponse; response: Response }>,
 ): Promise<T> {
   const { data, error, response } = await call
-  if (data === undefined) throw new ApiError(response.status, error?.message ?? '요청에 실패했어요')
+  if (data === undefined) throw new ApiError(response.status, error?.message ?? '요청에 실패했어요', error?.code)
   return data
 }
 
