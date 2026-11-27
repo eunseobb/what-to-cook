@@ -1,0 +1,226 @@
+/* AI 추천 요청·결과 화면. 색은 tokens.css 변수만 쓴다. 모바일 = 세로가 3:4보다 긴 화면. */
+
+.ai-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  /* main 패딩(16px)과 합쳐 시안의 상단 여백 48px */
+  padding: var(--space-8) 0 104px;
+}
+
+/* 데스크톱은 상단 헤더가 있어 모바일에서만 보인다 */
+.ai-page__back {
+  display: none;
+}
+
+.ai-page__hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ai-page__title {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 700;
+}
+
+.ai-page__desc {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.ai-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-page__chip {
+  padding: 6px var(--space-3);
+  /* 시안 8px: 재료 검색창 칩과 같다. 대응 radius 토큰이 없어 간격 토큰으로 맞춘다 */
+  border-radius: var(--space-2);
+  background: var(--color-accent-sage-soft);
+  color: var(--color-primary-strong);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ai-page__empty {
+  margin: 0;
+  color: var(--color-text-body);
+}
+
+.ai-page__empty a {
+  color: var(--color-primary-strong);
+}
+
+/* 생성 중 */
+.ai-page__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+}
+
+.ai-page__spinner {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  animation: ai-page-spin 1s linear infinite;
+}
+
+@keyframes ai-page-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-page__spinner {
+    animation: none;
+  }
+}
+
+.ai-page__status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ai-page__status p {
+  margin: 0;
+}
+
+.ai-page__status-title {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ai-page__status-desc {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+/* 결과 카드 + 편집 진입점 */
+.ai-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-page__edit {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.ai-page__edit:hover {
+  border-color: var(--color-primary-strong);
+}
+
+.ai-page__notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* 실패 안내 */
+.ai-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-control);
+  background: var(--color-danger-soft);
+}
+
+.ai-page__error-title {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ai-page__error-desc {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ai-page__error-button {
+  padding: 10px var(--space-4);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-input);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* 14px 글씨라 primary 대신 대비가 높은 primary-strong 배경을 쓴다(시안과 같은 값) */
+.ai-page__error-button--primary {
+  border-color: var(--color-primary-strong);
+  background: var(--color-primary-strong);
+  color: var(--color-canvas);
+}
+
+.ai-page__back:focus-visible,
+.ai-page__error-button:focus-visible,
+.ai-page__edit:focus-visible,
+.ai-page__empty a:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
+}
+
+@media (max-aspect-ratio: 3/4) {
+  .ai-page {
+    gap: var(--space-6);
+    padding: 0 0 var(--space-12);
+  }
+
+  .ai-page__back {
+    display: block;
+    align-self: flex-start;
+    color: var(--color-text-primary);
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .ai-page__hero {
+    gap: var(--space-3);
+  }
+
+  .ai-page__title {
+    font-size: 26px;
+  }
+
+  .ai-page__desc {
+    font-size: 14px;
+  }
+}
